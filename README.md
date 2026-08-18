@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌟 One-Stop HR System (Workspace)
 
-## Getting Started
+A modern, comprehensive Human Resources Management System built with **Next.js (App Router)**. This project features a premium **macOS-inspired Glassmorphism UI**, providing a seamless, responsive, and visually appealing experience for managing organizations, employees, and applicants.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **📄 Applicant Tracking System (ATS):** Manage job postings, track applicant statuses, and optimize SEO for public job listings.
+- **📊 Employee Dashboard:** Employee directory with real-time search, role-based status tracking, and a high-level overview of organization statistics.
+- **📝 Onboarding Form:** Streamlined document upload and data collection for new hires (UI ready for Server Actions).
+- **🏖️ Leave Management:** Request leave, check remaining quotas, and review approval history with clear status indicators.
+- **✨ Glassmorphism Design:** Smooth, responsive animated sidebar navigation with a frosted-glass effect.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework:** Next.js (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS v4
+- **Code Formatting:** Prettier (Tab Size: 2) & ESLint
+- **Typography:** Inter (English) & Prompt (Thai) via Google Fonts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📂 Project Structure
 
-## Learn More
+\`\`\`text
+hr-system/
+├── app/
+│ ├── ats/page.tsx # ATS Module
+│ ├── dashboard/page.tsx # Employee Dashboard Module
+│ ├── leave/page.tsx # Leave Management Module
+│ ├── onboarding/page.tsx # Onboarding Module
+│ ├── layout.tsx # Root layout with font configuration
+│ └── page.tsx # Main Workspace Hub
+├── components/
+│ ├── Sidebar.tsx # Animated Glassmorphism Sidebar
+│ └── UserProfile.tsx # User Profile UI
+└── public/ # Static assets
+\`\`\`
 
-To learn more about Next.js, take a look at the following resources:
+## 💻 Getting Started
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Prerequisites
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Make sure you have Node.js and npm installed on your system.
 
-## Deploy on Vercel
+### Installation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Clone the repository:
+   \`\`\`bash
+   git clone https://github.com/your-username/hr-system.git
+   cd hr-system
+   \`\`\`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. Install dependencies:
+   \`\`\`bash
+   npm install
+   \`\`\`
+
+3. Start the development server:
+   \`\`\`bash
+   npm run dev
+   \`\`\`
+
+4. Open your browser and navigate to `http://localhost:3000`.
+
+## 🔮 Future Roadmap (Upcoming Features)
+
+- [ ] Integrate Database (MySQL / PostgreSQL)
+- [ ] Implement Authentication & Role-based Access Control (Middleware)
+- [ ] Setup Server Actions for form submissions
+- [ ] Cloud Storage integration for Onboarding documents (Resume, ID Cards)
+
+## 👨‍💻 Author
+
+**Sunny (Adipa)**
