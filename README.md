@@ -33,6 +33,7 @@ hr-system/
 │   ├── Sidebar.tsx            # Animated Glassmorphism Sidebar
 │   └── UserProfile.tsx        # User Profile UI
 └── public/                    # Static assets
+```
 
 ## 💻 Getting Started
 
@@ -43,20 +44,23 @@ Make sure you have Node.js and npm installed on your system.
 ### Installation
 
 1. Clone the repository:
-   \`\`\`bash
-   git clone https://github.com/your-username/hr-system.git
-   cd hr-system
-   \`\`\`
+
+```bash
+git clone [https://github.com/modsunxx/HR-System.git](https://github.com/modsunxx/HR-System.git)
+cd hr-system
+```
 
 2. Install dependencies:
-   \`\`\`bash
-   npm install
-   \`\`\`
+
+```bash
+npm install
+```
 
 3. Start the development server:
-   \`\`\`bash
-   npm run dev
-   \`\`\`
+
+```bash
+npm run dev
+```
 
 4. Open your browser and navigate to `http://localhost:3000`.
 
@@ -70,4 +74,3 @@ Make sure you have Node.js and npm installed on your system.
 ## 👨‍💻 Author
 
 **Sunny (Adipa)**
-```
