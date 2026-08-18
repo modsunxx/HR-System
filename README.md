@@ -20,20 +20,19 @@ A modern, comprehensive Human Resources Management System built with **Next.js (
 
 ## 📂 Project Structure
 
-\`\`\`text
+```text
 hr-system/
 ├── app/
-│ ├── ats/page.tsx # ATS Module
-│ ├── dashboard/page.tsx # Employee Dashboard Module
-│ ├── leave/page.tsx # Leave Management Module
-│ ├── onboarding/page.tsx # Onboarding Module
-│ ├── layout.tsx # Root layout with font configuration
-│ └── page.tsx # Main Workspace Hub
+│   ├── ats/page.tsx           # ATS Module
+│   ├── dashboard/page.tsx     # Employee Dashboard Module
+│   ├── leave/page.tsx         # Leave Management Module
+│   ├── onboarding/page.tsx    # Onboarding Module
+│   ├── layout.tsx             # Root layout with font configuration
+│   └── page.tsx               # Main Workspace Hub
 ├── components/
-│ ├── Sidebar.tsx # Animated Glassmorphism Sidebar
-│ └── UserProfile.tsx # User Profile UI
-└── public/ # Static assets
-\`\`\`
+│   ├── Sidebar.tsx            # Animated Glassmorphism Sidebar
+│   └── UserProfile.tsx        # User Profile UI
+└── public/                    # Static assets
 
 ## 💻 Getting Started
 
@@ -71,3 +70,4 @@ Make sure you have Node.js and npm installed on your system.
 ## 👨‍💻 Author
 
 **Sunny (Adipa)**
+```
