@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// -------------------------------------------------
+// 1. ตารางแผนก (Department)
+// -------------------------------------------------
+model Department {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  description String?
+  // 1 แผนก มีพนักงานได้หลายคน
+  employees   Employee[] 
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// -------------------------------------------------
+// 2. ตารางพนักงาน (Employee) - อัปเดตใหม่
+// -------------------------------------------------
+model Employee {
+  id           Int            @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String         @unique
+  phone        String?
+  position     String
+  salary       Float?
+  
+  // ความสัมพันธ์: พนักงาน 1 คน อยู่ได้ 1 แผนก (Foreign Key)
+  departmentId Int?
+  department   Department?    @relation(fields: [departmentId], references: [id])
+  
+  // ความสัมพันธ์เชื่อมไปยังการลางานและการเข้างาน
+  leaves       LeaveRequest[]
+  attendances  Attendance[]
+  
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+// -------------------------------------------------
+// 3. ตารางการลางาน (LeaveRequest)
+// -------------------------------------------------
+model LeaveRequest {
+  id          Int      @id @default(autoincrement())
+  leaveType   String   // เช่น Sick (ลาป่วย), Vacation (ลาพักร้อน), Personal (ลากิจ)
+  startDate   DateTime
+  endDate     DateTime
+  reason      String?  @db.Text
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  
+  // ความสัมพันธ์: การลางานนี้เป็นของพนักงานคนไหน
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// -------------------------------------------------
+// 4. ตารางบันทึกเวลาเข้า-ออกงาน (Attendance)
+// -------------------------------------------------
+model Attendance {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @db.Date
+  clockIn     DateTime? 
+  clockOut    DateTime?
+  status      String   @default("PRESENT") // PRESENT, LATE, ABSENT
+  
+  // ความสัมพันธ์: การเข้างานนี้เป็นของพนักงานคนไหน
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date]) // ป้องกันพนักงานลงชื่อซ้ำในวันเดียวกัน
+}
