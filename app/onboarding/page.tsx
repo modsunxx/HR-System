@@ -1,7 +1,49 @@
+"use client";
+
 import Sidebar from "../../components/Sidebar";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "sonner";
+
+// 1. สร้างกฎการตรวจสอบด้วย Zod
+const formSchema = z.object({
+  firstName: z.string().min(1, "กรุณาระบุชื่อจริง"),
+  lastName: z.string().min(1, "กรุณาระบุนามสกุล"),
+  department: z.string().min(1, "กรุณาเลือกแผนก"),
+  startDate: z.string().min(1, "กรุณาระบุวันที่เริ่มงาน"),
+});
+
+// ดึง Type ออกมาใช้งาน
+type FormData = z.infer<typeof formSchema>;
 
 export default function OnboardingPage() {
+  // 2. ตั้งค่า React Hook Form
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+  });
+
+  // 3. ฟังก์ชันจัดการเมื่อกด Submit
+  const onSubmit = async (data: FormData) => {
+    // จำลองการส่งข้อมูล 1.5 วินาที
+    const promise = new Promise((resolve) => setTimeout(resolve, 1500));
+
+    toast.promise(promise, {
+      loading: "กำลังบันทึกข้อมูลพนักงานใหม่...",
+      success: `เพิ่มข้อมูลคุณ ${data.firstName} ${data.lastName} สำเร็จ!`,
+      error: "เกิดข้อผิดพลาดในการบันทึก",
+    });
+
+    await promise;
+    reset(); // ล้างข้อมูลในฟอร์มเมื่อเสร็จสิ้น
+  };
+
   return (
     <main
       className="min-h-screen flex font-sans bg-cover bg-center relative overflow-hidden"
@@ -16,7 +58,6 @@ export default function OnboardingPage() {
 
       <div className="relative z-10 flex-1 p-4 sm:p-8 flex flex-col items-center justify-start h-screen overflow-y-auto">
         <div className="w-full max-w-4xl mt-4 p-8 sm:p-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl text-white">
-          {/* Header */}
           <div className="mb-8 border-b border-white/20 pb-6">
             <Link
               href="/"
@@ -32,28 +73,48 @@ export default function OnboardingPage() {
             </p>
           </div>
 
-          {/* Form */}
-          <form className="space-y-6">
+          {/* 4. เชื่อม onSubmit เข้ากับฟอร์ม */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   First Name
                 </label>
                 <input
+                  {...register("firstName")}
                   type="text"
                   placeholder="ระบุชื่อจริง"
-                  className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-white/30"
+                  className={`w-full bg-slate-900/50 border rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none transition-colors ${
+                    errors.firstName
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-white/10 focus:border-white/30"
+                  }`}
                 />
+                {errors.firstName && (
+                  <span className="text-red-400 text-xs mt-1 block">
+                    {errors.firstName.message}
+                  </span>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Last Name
                 </label>
                 <input
+                  {...register("lastName")}
                   type="text"
                   placeholder="ระบุนามสกุล"
-                  className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-white/30"
+                  className={`w-full bg-slate-900/50 border rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none transition-colors ${
+                    errors.lastName
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-white/10 focus:border-white/30"
+                  }`}
                 />
+                {errors.lastName && (
+                  <span className="text-red-400 text-xs mt-1 block">
+                    {errors.lastName.message}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -62,49 +123,62 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Department
                 </label>
-                <select className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/30">
-                  <option className="bg-slate-900">Engineering</option>
-                  <option className="bg-slate-900">Product</option>
-                  <option className="bg-slate-900">Human Resources</option>
-                  <option className="bg-slate-900">Marketing</option>
+                <select
+                  {...register("department")}
+                  className={`w-full bg-slate-900/50 border rounded-xl px-4 py-3 text-white focus:outline-none transition-colors ${
+                    errors.department
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-white/10 focus:border-white/30"
+                  }`}
+                >
+                  <option value="">เลือกแผนก...</option>
+                  <option value="Engineering" className="bg-slate-900">
+                    Engineering
+                  </option>
+                  <option value="Product" className="bg-slate-900">
+                    Product
+                  </option>
+                  <option value="Human Resources" className="bg-slate-900">
+                    Human Resources
+                  </option>
+                  <option value="Marketing" className="bg-slate-900">
+                    Marketing
+                  </option>
                 </select>
+                {errors.department && (
+                  <span className="text-red-400 text-xs mt-1 block">
+                    {errors.department.message}
+                  </span>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Start Date
                 </label>
                 <input
+                  {...register("startDate")}
                   type="date"
-                  className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/30"
+                  className={`w-full bg-slate-900/50 border rounded-xl px-4 py-3 text-white focus:outline-none transition-colors ${
+                    errors.startDate
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-white/10 focus:border-white/30"
+                  }`}
                 />
-              </div>
-            </div>
-
-            {/* Upload Box */}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Upload Resume / ID Card / Documents
-              </label>
-              <div className="border-2 border-dashed border-white/20 rounded-2xl p-8 text-center bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
-                <div className="text-4xl mb-2">📄</div>
-                <p className="text-sm font-medium text-white">
-                  ลากไฟล์มาวางที่นี่ หรือ{" "}
-                  <span className="text-blue-400 underline">
-                    คลิกเพื่อเลือกไฟล์
+                {errors.startDate && (
+                  <span className="text-red-400 text-xs mt-1 block">
+                    {errors.startDate.message}
                   </span>
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  PDF, PNG, JPG (ขนาดไม่เกิน 10MB)
-                </p>
+                )}
               </div>
             </div>
 
             <div className="flex justify-end pt-4">
               <button
-                type="button"
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-blue-500/25"
+                type="submit"
+                disabled={isSubmitting}
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all shadow-lg"
               >
-                Submit Onboarding
+                {isSubmitting ? "Submitting..." : "Submit Onboarding"}
               </button>
             </div>
           </form>

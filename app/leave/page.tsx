@@ -1,24 +1,27 @@
+"use client";
+
 import Sidebar from "../../components/Sidebar";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function LeavePage() {
-  // Mock Data รายการขอลางาน
-  const leaveRequests = [
-    {
-      id: 1,
-      type: "Sick Leave",
-      dates: "19 Aug 2026 - 20 Aug 2026",
-      reason: "ไข้หวัดใหญ่ พักรักษาตัว",
-      status: "Approved",
-    },
-    {
-      id: 2,
-      type: "Annual Leave",
-      dates: "01 Sep 2026 - 03 Sep 2026",
-      reason: "ท่องเที่ยวต่างจังหวัด",
-      status: "Pending",
-    },
-  ];
+  // 1. สมมติว่ายังไม่มีข้อมูลวันลาในระบบ (Empty Array)
+  const leaveRequests: {
+    id: string;
+    type: string;
+    dates: string;
+    reason: string;
+    status: string;
+  }[] = [];
+
+  const handleRequestLeave = () => {
+    const promise = new Promise((resolve) => setTimeout(resolve, 1000));
+    toast.promise(promise, {
+      loading: "กำลังส่งคำขอลางาน...",
+      success: "ส่งคำขอสำเร็จ! HR จะทำการตรวจสอบเร็วๆ นี้",
+      error: "เกิดข้อผิดพลาด กรุณาลองใหม่",
+    });
+  };
 
   return (
     <main
@@ -34,7 +37,6 @@ export default function LeavePage() {
 
       <div className="relative z-10 flex-1 p-4 sm:p-8 flex flex-col items-center justify-start h-screen overflow-y-auto">
         <div className="w-full max-w-5xl mt-4 p-8 sm:p-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl text-white">
-          {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-white/20 pb-6 gap-4">
             <div>
               <Link
@@ -50,26 +52,29 @@ export default function LeavePage() {
                 ระบบยื่นคำขอลาหยุดและตรวจสอบสถานะการอนุมัติ
               </p>
             </div>
-            <button className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-blue-500/25">
+
+            <button
+              onClick={handleRequestLeave}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-blue-500/25"
+            >
               + Request Leave
             </button>
           </div>
 
-          {/* Leave Summary Badges */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
             <div className="p-6 rounded-2xl bg-white/5 border border-white/10 shadow-lg">
               <h3 className="text-slate-300 text-sm mb-1">
                 Annual Leave (Remaining)
               </h3>
               <p className="text-3xl font-bold">
-                10{" "}
+                12{" "}
                 <span className="text-sm font-normal text-slate-400">Days</span>
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-white/5 border border-white/10 shadow-lg">
               <h3 className="text-slate-300 text-sm mb-1">Sick Leave (Used)</h3>
               <p className="text-3xl font-bold">
-                2{" "}
+                0{" "}
                 <span className="text-sm font-normal text-slate-400">Days</span>
               </p>
             </div>
@@ -78,53 +83,68 @@ export default function LeavePage() {
                 Personal Leave (Used)
               </h3>
               <p className="text-3xl font-bold">
-                1{" "}
+                0{" "}
                 <span className="text-sm font-normal text-slate-400">Days</span>
               </p>
             </div>
           </div>
 
-          {/* History Table */}
+          {/* ตารางประวัติการลา */}
           <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden shadow-lg">
-            <div className="p-6 border-b border-white/10 bg-white/5">
+            <div className="p-6 bg-white/5">
               <h2 className="text-xl font-semibold">My Leave History</h2>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-white/5 text-slate-300 text-sm">
-                    <th className="p-4 font-medium">Leave Type</th>
-                    <th className="p-4 font-medium">Dates</th>
-                    <th className="p-4 font-medium">Reason</th>
-                    <th className="p-4 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
-                  {leaveRequests.map((leave) => (
-                    <tr
-                      key={leave.id}
-                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
-                    >
-                      <td className="p-4 font-semibold">{leave.type}</td>
-                      <td className="p-4 text-slate-300">{leave.dates}</td>
-                      <td className="p-4 text-slate-300">{leave.reason}</td>
-                      <td className="p-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                            leave.status === "Approved"
-                              ? "bg-green-500/20 text-green-300 border-green-500/30"
-                              : "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
-                          }`}
-                        >
-                          {leave.status}
-                        </span>
-                      </td>
+            {/* 2. เช็คว่าถ้ามีข้อมูลให้แสดงตาราง ถ้าไม่มีให้แสดง Empty State */}
+            {leaveRequests.length > 0 ? (
+              <div className="overflow-x-auto border-t border-white/10">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-white/5 text-slate-300 text-sm">
+                      <th className="p-4 font-medium">Leave Type</th>
+                      <th className="p-4 font-medium">Dates</th>
+                      <th className="p-4 font-medium">Reason</th>
+                      <th className="p-4 font-medium">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="text-sm">
+                    {leaveRequests.map((leave) => (
+                      <tr
+                        key={leave.id}
+                        className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                      >
+                        <td className="p-4 font-semibold">{leave.type}</td>
+                        <td className="p-4 text-slate-300">{leave.dates}</td>
+                        <td className="p-4 text-slate-300">{leave.reason}</td>
+                        <td className="p-4">
+                          <span className="px-3 py-1 rounded-full text-xs font-medium border bg-green-500/20 text-green-300 border-green-500/30">
+                            {leave.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              // Empty State UI
+              <div className="p-16 flex flex-col items-center justify-center text-center border-t border-white/10 bg-white/5">
+                <div className="text-6xl mb-4 opacity-70">📭</div>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  No Leave Requests Found
+                </h3>
+                <p className="text-slate-400 text-sm mb-6 max-w-sm">
+                  คุณยังไม่มีประวัติการยื่นคำขอลาหยุดในระบบ
+                  หากต้องการลางานสามารถสร้างคำขอใหม่ได้เลย
+                </p>
+                <button
+                  onClick={handleRequestLeave}
+                  className="px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-sm font-medium transition-colors"
+                >
+                  + Create New Request
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
