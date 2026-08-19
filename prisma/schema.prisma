@@ -78,3 +78,16 @@ model Attendance {
 
   @@unique([employeeId, date]) // ป้องกันพนักงานลงชื่อซ้ำในวันเดียวกัน
 }
+
+// -------------------------------------------------
+// 5. ตารางผู้ใช้งานระบบ (สำหรับ Login)
+// -------------------------------------------------
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String   // จะเก็บแบบเข้ารหัส (Hashed)
+  name      String   // ชื่อที่จะเอาไปโชว์ตรง UserProfile
+  role      String   @default("HR_ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
