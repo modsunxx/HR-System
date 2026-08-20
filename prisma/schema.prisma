@@ -3,90 +3,72 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
-// -------------------------------------------------
-// 1. ตารางแผนก (Department)
-// -------------------------------------------------
 model Department {
   id          Int        @id @default(autoincrement())
   name        String     @unique
   description String?
-  // 1 แผนก มีพนักงานได้หลายคน
-  employees   Employee[] 
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  employees   Employee[]
 }
 
-// -------------------------------------------------
-// 2. ตารางพนักงาน (Employee) - อัปเดตใหม่
-// -------------------------------------------------
 model Employee {
   id           Int            @id @default(autoincrement())
   firstName    String
   lastName     String
   email        String         @unique
-  phone        String?
   position     String
-  salary       Float?
-  
-  // ความสัมพันธ์: พนักงาน 1 คน อยู่ได้ 1 แผนก (Foreign Key)
+  createdAt    DateTime       @default(now())
   departmentId Int?
-  department   Department?    @relation(fields: [departmentId], references: [id])
-  
-  // ความสัมพันธ์เชื่อมไปยังการลางานและการเข้างาน
-  leaves       LeaveRequest[]
+  phone        String?
+  salary       Float?
+  updatedAt    DateTime       @updatedAt
   attendances  Attendance[]
   
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  // เติม map: "employee_department_fk" เพื่อไม่ให้ชื่อซ้ำกับ Index ด้านล่าง
+  department   Department?    @relation(fields: [departmentId], references: [id], map: "employee_department_fk")
+  leaves       LeaveRequest[]
+
+  @@index([departmentId], map: "Employee_departmentId_fkey")
 }
 
-// -------------------------------------------------
-// 3. ตารางการลางาน (LeaveRequest)
-// -------------------------------------------------
 model LeaveRequest {
-  id          Int      @id @default(autoincrement())
-  leaveType   String   // เช่น Sick (ลาป่วย), Vacation (ลาพักร้อน), Personal (ลากิจ)
-  startDate   DateTime
-  endDate     DateTime
-  reason      String?  @db.Text
-  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  
-  // ความสัมพันธ์: การลางานนี้เป็นของพนักงานคนไหน
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  leaveType  String
+  startDate  DateTime
+  endDate    DateTime
+  reason     String?  @db.Text
+  status     String   @default("PENDING")
+  employeeId Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // เติม map: "leaverequest_employee_fk" เพื่อหลบชื่อที่ซ้ำกัน
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "leaverequest_employee_fk")
+
+  @@index([employeeId], map: "LeaveRequest_employeeId_fkey")
 }
 
-// -------------------------------------------------
-// 4. ตารางบันทึกเวลาเข้า-ออกงาน (Attendance)
-// -------------------------------------------------
 model Attendance {
-  id          Int      @id @default(autoincrement())
-  date        DateTime @db.Date
-  clockIn     DateTime? 
-  clockOut    DateTime?
-  status      String   @default("PRESENT") // PRESENT, LATE, ABSENT
-  
-  // ความสัมพันธ์: การเข้างานนี้เป็นของพนักงานคนไหน
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  id         Int       @id @default(autoincrement())
+  date       DateTime  @db.Date
+  clockIn    DateTime?
+  clockOut   DateTime?
+  status     String    @default("PRESENT")
+  employeeId Int
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@unique([employeeId, date]) // ป้องกันพนักงานลงชื่อซ้ำในวันเดียวกัน
+  @@unique([employeeId, date])
 }
 
-// -------------------------------------------------
-// 5. ตารางผู้ใช้งานระบบ (สำหรับ Login)
-// -------------------------------------------------
 model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique
-  password  String   // จะเก็บแบบเข้ารหัส (Hashed)
-  name      String   // ชื่อที่จะเอาไปโชว์ตรง UserProfile
+  password  String
+  name      String
   role      String   @default("HR_ADMIN")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

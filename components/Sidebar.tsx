@@ -2,12 +2,28 @@
 
 import { useState } from "react";
 import UserProfile from "./UserProfile";
+import { useRouter } from "next/navigation";
 
 export default function Sidebar() {
   // ค่าเริ่มต้นตั้งเป็น false (ปิดอยู่)
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+
+  // เรียกใช้ router สำหรับเปลี่ยนหน้า
+  const router = useRouter();
+
+  // สร้างฟังก์ชันสำหรับจัดการตอนกดปุ่ม Logout
+  const handleLogout = async () => {
+    // 1. ถ้ามีการเก็บ Token หรือข้อมูลใน localStorage ให้ลบออกตรงนี้ครับ
+    // localStorage.removeItem("token");
+
+    // 2. ถ้ามี API สำหรับลบ Cookie/Session ก็เรียกตรงนี้ (ถ้ายังไม่มีข้ามได้เลย)
+    // await fetch("/api/logout", { method: "POST" });
+
+    // 3. สั่งพากลับไปหน้า Login
+    router.push("/login");
+  };
 
   // คำนวณความกว้างตอนเปิด
   const sidebarWidth = isCollapsed ? "w-24" : isMaximized ? "w-80" : "w-64";
@@ -82,7 +98,7 @@ export default function Sidebar() {
           <div
             className={`transition-all duration-300 ${isCollapsed ? "hidden" : "block"}`}
           >
-            <UserProfile />
+            <UserProfile name="Sunny" role="HR Admin" username="Sunny" />
           </div>
 
           {/* รูปโปรไฟล์จิ๋ว (แสดงตอนกดย่อปุ่มเหลือง) */}
@@ -135,6 +151,7 @@ export default function Sidebar() {
 
           {/* Logout Button */}
           <button
+            onClick={handleLogout}
             className={`flex items-center w-full rounded-xl hover:bg-red-500/50 hover:text-white transition-all text-sm font-medium text-red-200 mt-auto ${isCollapsed ? "p-3 justify-center" : "p-3 gap-3 text-left"}`}
           >
             <span className="text-xl shrink-0">🚪</span>

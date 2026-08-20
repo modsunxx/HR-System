@@ -1,12 +1,8 @@
-import "dotenv/config";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "@prisma/config";
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
-  migrations: {
-    path: "prisma/migrations",
-  },
   datasource: {
-    url: env("DATABASE_URL"),
+    // ใส่ URL ของ PostgreSQL เครื่อง Mint ลงไปตรงๆ เลยครับ
+    url: "postgresql://admin:1234@100.79.39.8:5432/hr_db?schema=public",
   },
 });
