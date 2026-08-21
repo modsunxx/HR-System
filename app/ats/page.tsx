@@ -1,34 +1,11 @@
 import Sidebar from "../../components/Sidebar";
 import Link from "next/link";
+import { prisma } from "../../lib/prisma";
 
-export default function ATSPage() {
-  // Mock Data จำลองข้อมูลประกาศรับสมัครงาน
-  const jobs = [
-    {
-      id: 1,
-      title: "Frontend Developer (Next.js / Tailwind)",
-      department: "Engineering",
-      type: "Full-time",
-      applicants: 12,
-      status: "Active",
-    },
-    {
-      id: 2,
-      title: "Backend Engineer (Go / MySQL)",
-      department: "Engineering",
-      type: "Full-time",
-      applicants: 5,
-      status: "Active",
-    },
-    {
-      id: 3,
-      title: "Full Stack Developer (SvelteKit / PHP)",
-      department: "Product",
-      type: "Contract",
-      applicants: 8,
-      status: "Draft",
-    },
-  ];
+// ลบฟังก์ชันที่ซ้อนกันออก เหลือแค่ async function ตัวเดียว
+export default async function ATSPage() {
+  // ดึงข้อมูลจากฐานข้อมูลจริง
+  const jobs = await prisma.jobPosting.findMany();
 
   return (
     <main

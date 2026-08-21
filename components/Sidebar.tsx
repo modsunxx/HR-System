@@ -2,35 +2,33 @@
 
 import { useState } from "react";
 import UserProfile from "./UserProfile";
-import { useRouter } from "next/navigation";
+// 1. นำเข้าเครื่องมือจาก NextAuth
+import { signOut, useSession } from "next-auth/react";
 
 export default function Sidebar() {
-  // ค่าเริ่มต้นตั้งเป็น false (ปิดอยู่)
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
 
-  // เรียกใช้ router สำหรับเปลี่ยนหน้า
-  const router = useRouter();
+  // 2. ล้วงข้อมูลผู้ใช้จาก Session ของ NextAuth ตรงๆ เลย!
+  const { data: session, status } = useSession();
 
-  // สร้างฟังก์ชันสำหรับจัดการตอนกดปุ่ม Logout
+  // ดึงค่ามาเตรียมไว้ (จำได้ไหมครับว่าเราแอบฝาก Role ไว้ในช่อง email)
+  const userName = session?.user?.name || "Guest";
+  const userRole = session?.user?.email || "HR Admin";
+  const userAvatarName = session?.user?.name || "guest";
+  const isLoading = status === "loading";
+
+  // 3. ฟังก์ชัน Logout ฉบับ NextAuth (บรรทัดเดียวจบ!)
   const handleLogout = async () => {
-    // 1. ถ้ามีการเก็บ Token หรือข้อมูลใน localStorage ให้ลบออกตรงนี้ครับ
-    // localStorage.removeItem("token");
-
-    // 2. ถ้ามี API สำหรับลบ Cookie/Session ก็เรียกตรงนี้ (ถ้ายังไม่มีข้ามได้เลย)
-    // await fetch("/api/logout", { method: "POST" });
-
-    // 3. สั่งพากลับไปหน้า Login
-    router.push("/login");
+    await signOut({ callbackUrl: "/login" });
   };
 
-  // คำนวณความกว้างตอนเปิด
   const sidebarWidth = isCollapsed ? "w-24" : isMaximized ? "w-80" : "w-64";
 
   return (
     <div className="relative flex items-start h-full z-20">
-      {/* 1. ปุ่ม Hamburger (แสดงตอน Sidebar ปิด) */}
+      {/* ปุ่ม Hamburger */}
       <div
         className={`transition-all duration-500 ease-in-out overflow-hidden flex items-start ${
           isOpen ? "w-0 opacity-0 m-0" : "w-16 opacity-100 m-4 sm:m-8 mr-0"
@@ -39,7 +37,6 @@ export default function Sidebar() {
         <button
           onClick={() => setIsOpen(true)}
           className="p-3 w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg text-white hover:bg-white/20 transition-all cursor-pointer group flex items-center justify-center shrink-0"
-          title="Open Sidebar"
         >
           <svg
             className="w-6 h-6 group-hover:scale-110 transition-transform"
@@ -57,7 +54,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* 2. Sidebar ตัวเต็ม */}
+      {/* Sidebar ตัวเต็ม */}
       <aside
         className={`rounded-3xl bg-white/10 backdrop-blur-2xl shadow-2xl flex flex-col text-white transition-all duration-500 ease-in-out overflow-hidden ${
           isOpen
@@ -65,7 +62,6 @@ export default function Sidebar() {
             : "w-0 opacity-0 m-0 p-0 border-0"
         }`}
       >
-        {/* เนื้อหาด้านใน (ครอบ div ไว้และใส่ min-width เพื่อไม่ให้ UI พังตอนจังหวะกำลังหดตัว) */}
         <div className="flex flex-col h-full min-w-20">
           {/* macOS Style Header */}
           <div
@@ -73,42 +69,43 @@ export default function Sidebar() {
           >
             <button
               onClick={() => setIsOpen(false)}
-              className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-400 transition-colors shadow-sm focus:outline-none shrink-0"
-              title="Close"
+              className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-400 transition-colors shadow-sm shrink-0"
             ></button>
             <button
               onClick={() => {
                 setIsCollapsed(!isCollapsed);
                 setIsMaximized(false);
               }}
-              className="w-3.5 h-3.5 rounded-full bg-yellow-500 hover:bg-yellow-400 transition-colors shadow-sm focus:outline-none shrink-0"
-              title="Minimize"
+              className="w-3.5 h-3.5 rounded-full bg-yellow-500 hover:bg-yellow-400 transition-colors shadow-sm shrink-0"
             ></button>
             <button
               onClick={() => {
                 setIsMaximized(!isMaximized);
                 setIsCollapsed(false);
               }}
-              className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-400 transition-colors shadow-sm focus:outline-none shrink-0"
-              title="Maximize"
+              className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-400 transition-colors shadow-sm shrink-0"
             ></button>
           </div>
 
-          {/* User Profile Section */}
+          {/* User Profile Section โยนข้อมูลจาก NextAuth เข้าไปเลย */}
           <div
             className={`transition-all duration-300 ${isCollapsed ? "hidden" : "block"}`}
           >
-            <UserProfile name="Sunny" role="HR Admin" username="Sunny" />
+            <UserProfile
+              name={isLoading ? "Loading..." : userName}
+              role={isLoading ? "..." : userRole}
+              username={userAvatarName}
+            />
           </div>
 
-          {/* รูปโปรไฟล์จิ๋ว (แสดงตอนกดย่อปุ่มเหลือง) */}
+          {/* รูปโปรไฟล์จิ๋ว (แสดงตอนกดย่อ) */}
           <div
             className={`flex justify-center mb-8 pb-8 border-b border-white/20 transition-all duration-300 ${isCollapsed ? "block" : "hidden"}`}
           >
             <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/30 shadow-lg bg-white/20 shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sunny&backgroundColor=transparent"
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userAvatarName}&backgroundColor=transparent`}
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
@@ -149,7 +146,7 @@ export default function Sidebar() {
             </button>
           </nav>
 
-          {/* Logout Button */}
+          {/* Logout Button เรียกฟังก์ชัน handleLogout */}
           <button
             onClick={handleLogout}
             className={`flex items-center w-full rounded-xl hover:bg-red-500/50 hover:text-white transition-all text-sm font-medium text-red-200 mt-auto ${isCollapsed ? "p-3 justify-center" : "p-3 gap-3 text-left"}`}

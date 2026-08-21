@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import Link from "next/link";
 import { toast } from "sonner";
 
 export default function LeavePage() {
-  // 1. สมมติว่ายังไม่มีข้อมูลวันลาในระบบ (Empty Array)
+  // 1. State ควบคุมการเปิด/ปิด Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Mock ข้อมูลตารางการลา
   const leaveRequests: {
     id: string;
     type: string;
@@ -14,7 +18,12 @@ export default function LeavePage() {
     status: string;
   }[] = [];
 
-  const handleRequestLeave = () => {
+  // 2. ฟังก์ชันจัดการตอนกดปุ่ม "ยืนยันการลา" ในฟอร์ม
+  const handleSubmitLeave = (e: React.FormEvent) => {
+    e.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
+    setIsModalOpen(false); // ปิด Modal
+
+    // จำลองการส่งข้อมูล (เดี๋ยวเราค่อยมาเชื่อม Server Actions + Prisma ทีหลัง)
     const promise = new Promise((resolve) => setTimeout(resolve, 1000));
     toast.promise(promise, {
       loading: "กำลังส่งคำขอลางาน...",
@@ -54,7 +63,7 @@ export default function LeavePage() {
             </div>
 
             <button
-              onClick={handleRequestLeave}
+              onClick={() => setIsModalOpen(true)} // กดแล้วเปิด Modal
               className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-blue-500/25"
             >
               + Request Leave
@@ -67,7 +76,7 @@ export default function LeavePage() {
                 Annual Leave (Remaining)
               </h3>
               <p className="text-3xl font-bold">
-                12{" "}
+                0{" "}
                 <span className="text-sm font-normal text-slate-400">Days</span>
               </p>
             </div>
@@ -95,7 +104,6 @@ export default function LeavePage() {
               <h2 className="text-xl font-semibold">My Leave History</h2>
             </div>
 
-            {/* 2. เช็คว่าถ้ามีข้อมูลให้แสดงตาราง ถ้าไม่มีให้แสดง Empty State */}
             {leaveRequests.length > 0 ? (
               <div className="overflow-x-auto border-t border-white/10">
                 <table className="w-full text-left border-collapse">
@@ -127,7 +135,6 @@ export default function LeavePage() {
                 </table>
               </div>
             ) : (
-              // Empty State UI
               <div className="p-16 flex flex-col items-center justify-center text-center border-t border-white/10 bg-white/5">
                 <div className="text-6xl mb-4 opacity-70">📭</div>
                 <h3 className="text-xl font-semibold text-white mb-2">
@@ -138,7 +145,7 @@ export default function LeavePage() {
                   หากต้องการลางานสามารถสร้างคำขอใหม่ได้เลย
                 </p>
                 <button
-                  onClick={handleRequestLeave}
+                  onClick={() => setIsModalOpen(true)} // กดแล้วเปิด Modal
                   className="px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-sm font-medium transition-colors"
                 >
                   + Create New Request
@@ -148,6 +155,105 @@ export default function LeavePage() {
           </div>
         </div>
       </div>
+
+      {/* ================= MODAL SECTION ================= */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* พื้นหลังทึบ (กดเพื่อปิด Modal ได้) */}
+          <div
+            className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsModalOpen(false)}
+          ></div>
+
+          {/* กล่อง Modal */}
+          <div className="relative w-full max-w-lg bg-slate-900 border border-white/20 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-white animate-in fade-in zoom-in-95 duration-200">
+            {/* Header ของ Modal */}
+            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+              <h2 className="text-xl font-semibold">
+                ยื่นคำขอลาหยุด (Request Leave)
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* ฟอร์มกรอกข้อมูล */}
+            <form
+              onSubmit={handleSubmitLeave}
+              className="p-6 space-y-5 bg-black/20"
+            >
+              <div>
+                <label className="block text-sm font-medium mb-1 text-slate-300">
+                  ประเภทการลา
+                </label>
+                <select
+                  required
+                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500 transition-colors text-white appearance-none cursor-pointer"
+                >
+                  <option value="annual">🏖️ ลาพักร้อน (Annual Leave)</option>
+                  <option value="sick">🤒 ลาป่วย (Sick Leave)</option>
+                  <option value="personal">📝 ลากิจ (Personal Leave)</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-300">
+                    วันเริ่มต้น
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500 transition-colors text-white scheme-dark"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-300">
+                    วันสิ้นสุด
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500 transition-colors text-white scheme-dark"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 text-slate-300">
+                  เหตุผลการลา
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500 transition-colors text-white resize-none placeholder-slate-500"
+                  placeholder="ระบุเหตุผลที่ต้องการลา..."
+                ></textarea>
+              </div>
+
+              {/* ปุ่ม Action ใน Modal */}
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl font-medium transition-colors"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-medium transition-colors shadow-lg"
+                >
+                  ยืนยันการลา
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

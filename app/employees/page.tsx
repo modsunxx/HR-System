@@ -1,51 +1,17 @@
 import Sidebar from "../../components/Sidebar";
 import Link from "next/link";
-import { prisma } from "../../lib/prisma"; // ดึงเครื่องมือ Prisma มาใช้
+import { prisma } from "../../lib/prisma";
 
-export default async function DashboardPage() {
-  // 1. ดึงข้อมูลพนักงานทั้งหมดจาก Database พร้อมชื่อแผนก
+export default async function EmployeesDirectoryPage() {
+  // ดึงข้อมูลพนักงานทั้งหมดจาก Database
   const dbEmployees = await prisma.employee.findMany({
     include: {
-      department: true, // Join ตาราง Department มาด้วย
+      department: true,
     },
     orderBy: {
-      id: "asc", // เรียงตาม ID
+      id: "asc",
     },
   });
-
-  // 2. นับจำนวนพนักงานทั้งหมดในระบบจริงๆ
-  const totalEmployeesCount = await prisma.employee.count();
-
-  const stats = [
-    {
-      id: 1,
-      label: "Total Employees",
-      value: totalEmployeesCount.toString(), // อันนี้คือยอดจริงจาก Database
-      icon: "👥",
-      trend: "+0 this month", // ปรับให้ดูเนียนๆ ก่อน
-    },
-    {
-      id: 2,
-      label: "On Leave Today",
-      value: "0", // แก้จาก 8 เป็น 0
-      icon: "🏖️",
-      trend: "Normal",
-    },
-    {
-      id: 3,
-      label: "Pending Onboarding",
-      value: "0", // แก้จาก 3 เป็น 0
-      icon: "📝",
-      trend: "Action required",
-    },
-    {
-      id: 4,
-      label: "Open Positions",
-      value: "0", // แก้จาก 5 เป็น 0
-      icon: "💼",
-      trend: "From ATS",
-    },
-  ];
 
   return (
     <main
@@ -56,7 +22,7 @@ export default async function DashboardPage() {
       }}
     >
       {/* Background Overlay */}
-      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-md z-0"></div>
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md z-0"></div>
 
       {/* เรียกใช้ Sidebar */}
       <Sidebar />
@@ -67,6 +33,7 @@ export default async function DashboardPage() {
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-white/20 pb-6 gap-4">
             <div>
+              {/* เพิ่มปุ่มย้อนกลับตรงนี้ */}
               <Link
                 href="/"
                 className="inline-flex items-center text-sm text-slate-300 hover:text-white mb-2 transition-colors"
@@ -74,57 +41,38 @@ export default async function DashboardPage() {
                 <span className="mr-2">←</span> Back to Workspace
               </Link>
               <h1 className="text-3xl font-bold tracking-wide">
-                Employee Dashboard
+                Employee Directory
               </h1>
               <p className="text-sm text-slate-300 mt-2">
-                ภาพรวมองค์กรและจัดการสิทธิ์การเข้าถึงข้อมูลพนักงาน
+                จัดการรายชื่อพนักงานทั้งหมดในองค์กร ({dbEmployees.length} คน)
               </p>
             </div>
-            <button className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl font-medium transition-all shadow-lg flex items-center gap-2">
-              <span>⬇️</span> Export Data
-            </button>
-          </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-            {stats.map((stat) => (
-              <div
-                key={stat.id}
-                className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 shadow-lg"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="text-3xl">{stat.icon}</div>
-                  <span
-                    className={`text-xs font-medium px-2 py-1 rounded-md ${
-                      stat.trend.includes("+") || stat.trend === "Normal"
-                        ? "bg-green-500/20 text-green-300"
-                        : stat.trend.includes("Action")
-                          ? "bg-yellow-500/20 text-yellow-300"
-                          : "bg-slate-500/20 text-slate-300"
-                    }`}
-                  >
-                    {stat.trend}
-                  </span>
-                </div>
-                <h3 className="text-slate-300 text-sm font-medium mb-1">
-                  {stat.label}
-                </h3>
-                <p className="text-3xl font-bold">{stat.value}</p>
-              </div>
-            ))}
+            {/* ปุ่มเพิ่มพนักงานใหม่ ชี้ไปที่ฟอร์มที่เราสร้างไว้ */}
+            <Link
+              href="/employee/new"
+              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/30 text-white rounded-xl font-medium transition-all shadow-lg flex items-center gap-2"
+            >
+              <span>➕</span> Add New Employee
+            </Link>
           </div>
 
           {/* Employee Directory Table */}
           <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden shadow-lg">
             <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-              <h2 className="text-xl font-semibold">Employee Directory</h2>
               <div className="relative">
+                <span className="absolute left-3 top-2.5 text-slate-400">
+                  🔍
+                </span>
                 <input
                   type="text"
-                  placeholder="Search employees..."
-                  className="bg-slate-900/50 border border-white/10 text-sm rounded-lg px-4 py-2 w-64 focus:outline-none focus:border-white/30 text-white placeholder-slate-400"
+                  placeholder="ค้นหาพนักงาน..."
+                  className="bg-slate-900/50 border border-white/10 text-sm rounded-lg pl-10 pr-4 py-2 w-64 focus:outline-none focus:border-white/30 text-white placeholder-slate-400 transition-all focus:w-80"
                 />
               </div>
+              <button className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-sm transition-all flex items-center gap-2">
+                <span>⚡</span> Filter
+              </button>
             </div>
 
             <div className="overflow-x-auto">
@@ -140,7 +88,6 @@ export default async function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="text-sm">
-                  {/* 4. นำข้อมูลจริงจาก DB มา Map ลงตาราง */}
                   {dbEmployees.length > 0 ? (
                     dbEmployees.map((emp) => (
                       <tr
@@ -150,7 +97,14 @@ export default async function DashboardPage() {
                         <td className="p-4 font-mono text-slate-400">
                           EMP-{emp.id.toString().padStart(3, "0")}
                         </td>
-                        <td className="p-4 font-medium">
+                        <td className="p-4 font-medium flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${emp.firstName}&backgroundColor=transparent`}
+                              alt="Profile"
+                            />
+                          </div>
                           {emp.firstName} {emp.lastName}
                         </td>
                         <td className="p-4 text-slate-300">{emp.position}</td>
@@ -165,9 +119,13 @@ export default async function DashboardPage() {
                           </span>
                         </td>
                         <td className="p-4 text-center">
-                          <button className="text-blue-400 hover:text-blue-300 font-medium text-sm transition-colors">
+                          {/* ปุ่ม Manage ลิงก์ไปหน้าดูโปรไฟล์ [id] ที่เราเพิ่งสร้าง! */}
+                          <Link
+                            href={`/employees/${emp.id}`}
+                            className="px-3 py-1.5 bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 rounded-lg font-medium text-sm transition-colors border border-blue-500/30"
+                          >
                             Manage
-                          </button>
+                          </Link>
                         </td>
                       </tr>
                     ))
@@ -175,9 +133,13 @@ export default async function DashboardPage() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="p-8 text-center text-slate-400"
+                        className="p-12 text-center text-slate-400"
                       >
-                        ยังไม่มีข้อมูลพนักงานในระบบ (คลิกปุ่มเพิ่มพนักงานเลย!)
+                        <div className="text-4xl mb-3">📭</div>
+                        <p>ยังไม่มีข้อมูลพนักงานในระบบ</p>
+                        <p className="text-xs mt-1">
+                          คลิกปุ่ม Add New Employee เพื่อเริ่มต้นใช้งาน
+                        </p>
                       </td>
                     </tr>
                   )}

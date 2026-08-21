@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Toaster } from "sonner"; // 1. Import Toaster
+import { Toaster } from "sonner";
+import Providers from "./Providers"; // 1. นำเข้าตัวครอบที่เราเพิ่งสร้าง
 
 export const metadata: Metadata = {
   title: "HR Workspace",
@@ -15,9 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
+        {/* 2. เอา Providers มาครอบ children ทั้งหมดของแอปไว้ */}
+        <Providers>{children}</Providers>
 
-        {/* 2. วาง Toaster ไว้ล่างสุด พร้อมแต่ง CSS แบบกระจกฝ้า */}
+        {/* Toaster วางไว้จุดเดิม ถูกต้องแล้วครับ */}
         <Toaster
           position="bottom-right"
           toastOptions={{

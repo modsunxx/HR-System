@@ -6,34 +6,62 @@ datasource db {
   provider = "postgresql"
 }
 
+// ==========================================
+// 🏢 Organization Models
+// ==========================================
+
 model Department {
   id          Int        @id @default(autoincrement())
   name        String     @unique
   description String?
+  
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  
   employees   Employee[]
 }
 
 model Employee {
   id           Int            @id @default(autoincrement())
-  firstName    String
-  lastName     String
+  firstName    String         // ชื่อจริง (TH)
+  lastName     String         // นามสกุล (TH)
+  firstNameEn  String?        // ชื่อจริง (EN)
+  lastNameEn   String?        // นามสกุล (EN)
   email        String         @unique
-  position     String
-  createdAt    DateTime       @default(now())
-  departmentId Int?
-  phone        String?
+  position     String         // ตำแหน่งงาน (เดี๋ยวไปบังคับด้วย Dropdown ที่หน้าเว็บ)
   salary       Float?
-  updatedAt    DateTime       @updatedAt
-  attendances  Attendance[]
+  phone        String?
+  departmentId Int?
   
-  // เติม map: "employee_department_fk" เพื่อไม่ให้ชื่อซ้ำกับ Index ด้านล่าง
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // 🔗 Relations
   department   Department?    @relation(fields: [departmentId], references: [id], map: "employee_department_fk")
+  attendances  Attendance[]
   leaves       LeaveRequest[]
 
   @@index([departmentId], map: "Employee_departmentId_fkey")
 }
+
+// ==========================================
+// 👤 System Users (Admin/HR)
+// ==========================================
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  name      String
+  role      String   @default("HR_ADMIN")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// 🏖️ Leave Management
+// ==========================================
 
 model LeaveRequest {
   id         Int      @id @default(autoincrement())
@@ -43,33 +71,51 @@ model LeaveRequest {
   reason     String?  @db.Text
   status     String   @default("PENDING")
   employeeId Int
+  
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  // เติม map: "leaverequest_employee_fk" เพื่อหลบชื่อที่ซ้ำกัน
+  // 🔗 Relations
   employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "leaverequest_employee_fk")
 
   @@index([employeeId], map: "LeaveRequest_employeeId_fkey")
 }
 
+// ==========================================
+// ⏰ Time & Attendance
+// ==========================================
+
 model Attendance {
   id         Int       @id @default(autoincrement())
-  date       DateTime  @db.Date
-  clockIn    DateTime?
-  clockOut   DateTime?
-  status     String    @default("PRESENT")
   employeeId Int
+  
+  date       DateTime  @db.Date
+  checkIn    DateTime
+  checkOut   DateTime?
+  status     String    @default("Present")
+  notes      String?
+  
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // 🔗 Relations
   employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, date])
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  name      String
-  role      String   @default("HR_ADMIN")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ==========================================
+// 📄 Applicant Tracking System (ATS)
+// ==========================================
+
+model JobPosting {
+  id         Int      @id @default(autoincrement())
+  title      String   
+  department String   
+  type       String   
+  status     String   @default("Active") 
+  applicants Int      @default(0)        
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
