@@ -69,7 +69,7 @@ export default function RegisterPage() {
           <input
             type="text"
             required
-            placeholder="Display Name (e.g. Sunny)"
+            placeholder="Display Name"
             className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-black/40 transition-all placeholder:text-zinc-500"
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />

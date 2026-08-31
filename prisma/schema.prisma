@@ -53,7 +53,7 @@ model User {
   username  String   @unique
   password  String
   name      String
-  role      String   @default("HR_ADMIN")
+  role      String   @default("EMPLOYEE")
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
