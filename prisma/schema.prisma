@@ -54,7 +54,7 @@ model User {
   password  String
   name      String
   role      Role     @default(EMPLOYEE)
-  avatarUrl String?  
+  avatarUrl String?
   createdAt DateTime @default(now())
 }
 
