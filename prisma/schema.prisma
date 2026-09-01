@@ -53,10 +53,9 @@ model User {
   username  String   @unique
   password  String
   name      String
-  role      String   @default("EMPLOYEE")
-  
+  role      Role     @default(EMPLOYEE)
+  avatarUrl String?  
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ==========================================
@@ -118,4 +117,9 @@ model JobPosting {
   
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+enum Role {
+  EMPLOYEE
+  HR_ADMIN
 }

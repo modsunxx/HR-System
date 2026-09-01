@@ -1,9 +1,10 @@
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "../../../../lib/prisma";
 import bcrypt from "bcryptjs";
 
-const handler = NextAuth({
+// 🌟 แยกตัวแปร authOptions ออกมาและใส่ export เพื่อให้ไฟล์อื่นดึงไปใช้ได้
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -16,30 +17,27 @@ const handler = NextAuth({
           return null;
         }
 
-        // 1. หา User ใน Database
         const user = await prisma.user.findUnique({
           where: { username: credentials.username },
         });
 
         if (!user) {
-          return null; // หาไม่เจอ = ล็อกอินไม่ผ่าน
+          return null;
         }
 
-        // 2. เอาหน้ากาก (bcrypt) มาถอดรหัสเทียบกัน
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password,
         );
 
         if (!isPasswordValid) {
-          return null; // รหัสผิด = ล็อกอินไม่ผ่าน
+          return null;
         }
 
-        // 3. ผ่านด่าน! ส่งข้อมูลกลับไปสร้าง Session
         return {
           id: user.id.toString(),
           name: user.name,
-          email: user.role, // ขอแอบยืมช่อง email เก็บ Role (เช่น HR_ADMIN) ไปก่อนนะครับ
+          email: user.role, // ยืมช่อง email เก็บ Role เหมือนเดิมเป๊ะครับ
         };
       },
     }),
@@ -48,8 +46,11 @@ const handler = NextAuth({
     strategy: "jwt",
   },
   pages: {
-    signIn: "/login", // บอกระบบว่าถ้าจะล็อกอิน ให้เด้งไปหน้านี้
+    signIn: "/login",
   },
-});
+};
+
+// นำ authOptions มาใส่ใน handler
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

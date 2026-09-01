@@ -1,7 +1,26 @@
 import Sidebar from "../../components/Sidebar";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/[...nextauth]/route";
+import EditProfileModal from "../../components/EditProfileModal";
+import ChangePasswordModal from "../../components/ChangePasswordModal";
+import DeleteAccountModal from "../../components/DeleteAccountModal";
+import AvatarUpload from "../../components/AvatarUpload";
+import { prisma } from "../../lib/prisma";
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const session = await getServerSession(authOptions);
+
+  const name = session?.user?.name || "Unknown User";
+  const role = session?.user?.email || "EMPLOYEE";
+  const username = session?.user?.name || "guest";
+
+  // 🌟 วางโค้ดดึงข้อมูล Database ตรงนี้ (ก่อน return)
+  const dbUser = await prisma.user.findFirst({
+    where: { name: name },
+  });
+  const currentAvatarUrl = dbUser?.avatarUrl;
+
   return (
     <main
       className="min-h-screen flex font-sans bg-cover bg-center relative overflow-hidden"
@@ -14,43 +33,87 @@ export default function ProfilePage() {
       <Sidebar />
 
       <div className="relative z-10 flex-1 p-4 sm:p-8 flex flex-col items-center justify-start h-screen overflow-y-auto">
-        <div className="w-full max-w-4xl mt-4 p-8 sm:p-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl text-white">
-          <div className="mb-8 border-b border-white/20 pb-6">
-            <Link
-              href="/"
-              className="inline-flex items-center text-sm text-slate-300 hover:text-white mb-4 transition-colors"
-            >
-              <span className="mr-2">←</span> Back to Workspace
-            </Link>
-            <h1 className="text-3xl font-bold tracking-wide">👤 My Profile</h1>
-            <p className="text-sm text-slate-300 mt-2">
-              จัดการข้อมูลส่วนตัวและบัญชีผู้ใช้งาน
-            </p>
+        <div className="w-full max-w-5xl mt-4 p-8 sm:p-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl text-white">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm text-slate-300 hover:text-white mb-6 transition-colors"
+          >
+            <span className="mr-2">←</span> Back to Workspace
+          </Link>
+
+          <div className="mb-8 border-b border-white/20 pb-6 flex justify-between items-end">
+            <div>
+              <h1 className="text-3xl font-bold tracking-wide">
+                👤 My Profile
+              </h1>
+              <p className="text-sm text-slate-300 mt-2">
+                จัดการข้อมูลส่วนตัวและบัญชีผู้ใช้งาน
+              </p>
+            </div>
+            <EditProfileModal currentName={name} />
           </div>
 
-          <div className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-32 h-32 rounded-full bg-white/20 border-4 border-white/30 flex items-center justify-center text-4xl overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.1)] shrink-0">
-              {/* ใช้ Dicebear ชั่วคราว เดี๋ยวอนาคตเรามาผูกกับ Session */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=admin&backgroundColor=transparent"
-                alt="Avatar"
-                className="w-full h-full object-cover"
+          <div className="flex flex-col md:flex-row gap-10 items-start">
+            {/* โซนซ้าย: รูปโปรไฟล์และปุ่มจัดการ */}
+            <div className="w-full md:w-1/3 flex flex-col items-center space-y-6">
+              {/* 🌟 นำ Component รูปลงไปวางตรงนี้แทนที่ของเก่า */}
+              <AvatarUpload
+                initialAvatarUrl={currentAvatarUrl}
+                username={username}
               />
+
+              <div className="w-full space-y-3">
+                <ChangePasswordModal />
+                <DeleteAccountModal />
+              </div>
             </div>
 
-            <div className="flex-1 w-full space-y-4">
-              <div className="bg-black/20 p-4 rounded-xl border border-white/10">
+            {/* โซนขวา: ข้อมูลแบบ Grid ให้ดูแน่นขึ้น */}
+            <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-black/20 p-5 rounded-2xl border border-white/10 col-span-1 sm:col-span-2">
                 <p className="text-sm text-slate-400 mb-1">Display Name</p>
-                <p className="text-xl font-semibold">HR Admin</p>
+                <p className="text-xl font-semibold">{name}</p>
               </div>
-              <div className="bg-black/20 p-4 rounded-xl border border-white/10">
+
+              <div className="bg-black/20 p-5 rounded-2xl border border-white/10">
                 <p className="text-sm text-slate-400 mb-1">
                   Role / Access Level
                 </p>
-                <p className="inline-block px-3 py-1 mt-1 rounded-full text-xs font-medium border bg-blue-500/20 text-blue-300 border-blue-500/30">
-                  HR_ADMIN
+                <p className="inline-block px-3 py-1 mt-1 rounded-full text-xs font-medium border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+                  {role}
                 </p>
+              </div>
+
+              <div className="bg-black/20 p-5 rounded-2xl border border-white/10">
+                <p className="text-sm text-slate-400 mb-1">Department</p>
+                <p className="text-md font-medium text-slate-200 mt-1">
+                  Human Resources
+                </p>
+              </div>
+
+              <div className="bg-black/20 p-5 rounded-2xl border border-white/10">
+                <p className="text-sm text-slate-400 mb-1">Email (Username)</p>
+                <p className="text-md font-medium text-slate-200 mt-1">
+                  {username}
+                </p>
+              </div>
+
+              <div className="bg-black/20 p-5 rounded-2xl border border-white/10">
+                <p className="text-sm text-slate-400 mb-1">Join Date</p>
+                <p className="text-md font-medium text-slate-200 mt-1">
+                  01 Sep 2026
+                </p>
+              </div>
+
+              <div className="bg-black/20 p-5 rounded-2xl border border-white/10 col-span-1 sm:col-span-2 flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-slate-400 mb-1">System Status</p>
+                  <p className="text-sm text-slate-300 flex items-center gap-2 mt-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Connected & Authenticated
+                  </p>
+                </div>
+                <div className="text-2xl opacity-50">🛡️</div>
               </div>
             </div>
           </div>
