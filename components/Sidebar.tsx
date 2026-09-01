@@ -2,24 +2,24 @@
 
 import { useState } from "react";
 import UserProfile from "./UserProfile";
-// 1. นำเข้าเครื่องมือจาก NextAuth
 import { signOut, useSession } from "next-auth/react";
+import Link from "next/link"; // นำเข้าเครื่องมือ Link สำหรับเปลี่ยนหน้า
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
 
-  // 2. ล้วงข้อมูลผู้ใช้จาก Session ของ NextAuth ตรงๆ เลย!
+  // ล้วงข้อมูลผู้ใช้จาก Session ของ NextAuth ตรงๆ
   const { data: session, status } = useSession();
 
-  // ดึงค่ามาเตรียมไว้ (จำได้ไหมครับว่าเราแอบฝาก Role ไว้ในช่อง email)
+  // ดึงค่ามาเตรียมไว้
   const userName = session?.user?.name || "Guest";
   const userRole = session?.user?.email || "HR Admin";
   const userAvatarName = session?.user?.name || "guest";
   const isLoading = status === "loading";
 
-  // 3. ฟังก์ชัน Logout ฉบับ NextAuth (บรรทัดเดียวจบ!)
+  // ฟังก์ชัน Logout ฉบับ NextAuth (บรรทัดเดียวจบ!)
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/login" });
   };
@@ -58,14 +58,18 @@ export default function Sidebar() {
       <aside
         className={`rounded-3xl bg-white/10 backdrop-blur-2xl shadow-2xl flex flex-col text-white transition-all duration-500 ease-in-out overflow-hidden ${
           isOpen
-            ? `${sidebarWidth} opacity-100 m-4 sm:m-8 mr-0 border border-white/20 ${isCollapsed ? "p-4" : "p-6"}`
+            ? `${sidebarWidth} opacity-100 m-4 sm:m-8 mr-0 border border-white/20 ${
+                isCollapsed ? "p-4" : "p-6"
+              }`
             : "w-0 opacity-0 m-0 p-0 border-0"
         }`}
       >
         <div className="flex flex-col h-full min-w-20">
           {/* macOS Style Header */}
           <div
-            className={`flex space-x-2 mb-10 transition-all duration-500 ${isCollapsed ? "justify-center" : ""}`}
+            className={`flex space-x-2 mb-10 transition-all duration-500 ${
+              isCollapsed ? "justify-center" : ""
+            }`}
           >
             <button
               onClick={() => setIsOpen(false)}
@@ -89,7 +93,9 @@ export default function Sidebar() {
 
           {/* User Profile Section โยนข้อมูลจาก NextAuth เข้าไปเลย */}
           <div
-            className={`transition-all duration-300 ${isCollapsed ? "hidden" : "block"}`}
+            className={`transition-all duration-300 ${
+              isCollapsed ? "hidden" : "block"
+            }`}
           >
             <UserProfile
               name={isLoading ? "Loading..." : userName}
@@ -100,7 +106,9 @@ export default function Sidebar() {
 
           {/* รูปโปรไฟล์จิ๋ว (แสดงตอนกดย่อ) */}
           <div
-            className={`flex justify-center mb-8 pb-8 border-b border-white/20 transition-all duration-300 ${isCollapsed ? "block" : "hidden"}`}
+            className={`flex justify-center mb-8 pb-8 border-b border-white/20 transition-all duration-300 ${
+              isCollapsed ? "block" : "hidden"
+            }`}
           >
             <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/30 shadow-lg bg-white/20 shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -112,10 +120,13 @@ export default function Sidebar() {
             </div>
           </div>
 
-          {/* Sidebar Menu */}
+          {/* Sidebar Menu ใช้ Link แล้ว 🚀 */}
           <nav className="flex flex-col gap-3 flex-1">
-            <button
-              className={`flex items-center w-full rounded-xl bg-white/20 hover:bg-white/30 border border-white/10 transition-all text-sm font-medium shadow-sm ${isCollapsed ? "p-3 justify-center" : "p-3 gap-3 text-left"}`}
+            <Link
+              href="/settings"
+              className={`flex items-center w-full rounded-xl hover:bg-white/30 border border-transparent hover:border-white/10 transition-all text-sm font-medium shadow-sm ${
+                isCollapsed ? "p-3 justify-center" : "p-3 gap-3 text-left"
+              } bg-white/20`}
             >
               <span className="text-xl shrink-0">⚙️</span>
               {!isCollapsed && (
@@ -123,9 +134,13 @@ export default function Sidebar() {
                   Settings
                 </span>
               )}
-            </button>
-            <button
-              className={`flex items-center w-full rounded-xl hover:bg-white/10 transition-all text-sm font-medium ${isCollapsed ? "p-3 justify-center" : "p-3 gap-3 text-left"}`}
+            </Link>
+
+            <Link
+              href="/profile"
+              className={`flex items-center w-full rounded-xl hover:bg-white/10 transition-all text-sm font-medium ${
+                isCollapsed ? "p-3 justify-center" : "p-3 gap-3 text-left"
+              }`}
             >
               <span className="text-xl shrink-0">👤</span>
               {!isCollapsed && (
@@ -133,9 +148,13 @@ export default function Sidebar() {
                   My Profile
                 </span>
               )}
-            </button>
-            <button
-              className={`flex items-center w-full rounded-xl hover:bg-white/10 transition-all text-sm font-medium ${isCollapsed ? "p-3 justify-center" : "p-3 gap-3 text-left"}`}
+            </Link>
+
+            <Link
+              href="/notifications"
+              className={`flex items-center w-full rounded-xl hover:bg-white/10 transition-all text-sm font-medium ${
+                isCollapsed ? "p-3 justify-center" : "p-3 gap-3 text-left"
+              }`}
             >
               <span className="text-xl shrink-0">🔔</span>
               {!isCollapsed && (
@@ -143,13 +162,15 @@ export default function Sidebar() {
                   Notifications
                 </span>
               )}
-            </button>
+            </Link>
           </nav>
 
           {/* Logout Button เรียกฟังก์ชัน handleLogout */}
           <button
             onClick={handleLogout}
-            className={`flex items-center w-full rounded-xl hover:bg-red-500/50 hover:text-white transition-all text-sm font-medium text-red-200 mt-auto ${isCollapsed ? "p-3 justify-center" : "p-3 gap-3 text-left"}`}
+            className={`flex items-center w-full rounded-xl hover:bg-red-500/50 hover:text-white transition-all text-sm font-medium text-red-200 mt-auto ${
+              isCollapsed ? "p-3 justify-center" : "p-3 gap-3 text-left"
+            }`}
           >
             <span className="text-xl shrink-0">🚪</span>
             {!isCollapsed && (
