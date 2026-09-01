@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { supabase } from "../../../../lib/supabase";
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +12,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. รับข้อมูลไฟล์จาก FormData ที่หน้าเว็บส่งมา
+    // 2. รับข้อมูลไฟล์จาก FormData
     const formData = await req.formData();
     const file = formData.get("avatar") as File | null;
 
@@ -21,28 +20,39 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "ไม่พบไฟล์รูปภาพ" }, { status: 400 });
     }
 
-    // 3. แปลงไฟล์เป็น Buffer เพื่อเตรียมเขียนลงโฟลเดอร์
+    // 3. แปลงไฟล์เป็น Buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // 4. กำหนดชื่อไฟล์ใหม่ให้ไม่ซ้ำกัน (ใช้ชื่อ user + เวลา)
+    // 4. ตั้งชื่อไฟล์ใหม่กันชื่อซ้ำ
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     const fileExtension = file.name.split(".").pop();
     const newFilename = `avatar-${session.user.name.replace(/\s+/g, "-")}-${uniqueSuffix}.${fileExtension}`;
 
-    // 5. กำหนดโฟลเดอร์ปลายทาง (public/uploads/avatars)
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "avatars");
+    // 5. อัปโหลดไฟล์ขึ้น Supabase Storage (Bucket: avatars)
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(newFilename, buffer, {
+        contentType: file.type,
+        upsert: true,
+      });
 
-    // สร้างโฟลเดอร์ถ้ายังไม่มี
-    await mkdir(uploadDir, { recursive: true });
+    if (uploadError) {
+      console.error("Supabase storage error:", uploadError);
+      return NextResponse.json(
+        { error: "ไม่สามารถอัปโหลดไฟล์ไปยัง Cloud Storage ได้" },
+        { status: 500 },
+      );
+    }
 
-    // 6. บันทึกไฟล์ลงโฟลเดอร์
-    const filePath = path.join(uploadDir, newFilename);
-    await writeFile(filePath, buffer);
+    // 6. ดึง Public URL ของรูปภาพ
+    const { data: publicUrlData } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(newFilename);
 
-    // 7. เอาที่อยู่ไฟล์ (URL) ไปบันทึกลง Database
-    const avatarUrl = `/uploads/avatars/${newFilename}`;
+    const avatarUrl = publicUrlData.publicUrl;
 
+    // 7. บันทึก Public URL ลง Database ใน Supabase
     await prisma.user.updateMany({
       where: { name: session.user.name },
       data: { avatarUrl: avatarUrl },

@@ -1,8 +1,12 @@
 import { defineConfig } from "@prisma/config";
+import dotenv from "dotenv";
+
+// 🌟 บังคับให้อ่านไฟล์ .env ก่อนเลย
+dotenv.config();
 
 export default defineConfig({
   datasource: {
-    // ใส่ URL ของ PostgreSQL เครื่อง Mint ลงไปตรงๆ เลยครับ
-    url: "postgresql://admin:1234@100.79.39.8:5432/hr_db?schema=public",
+    // ดึงค่า DIRECT_URL (พอร์ต 5432) มาใช้
+    url: process.env.DIRECT_URL,
   },
 });
