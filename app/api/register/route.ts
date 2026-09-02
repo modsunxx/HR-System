@@ -27,7 +27,6 @@ export async function POST(req: Request) {
         username,
         password: hashedPassword,
         name: name || username,
-        role: "HR_ADMIN",
       },
     });
 
