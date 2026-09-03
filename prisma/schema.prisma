@@ -59,6 +59,9 @@ model User {
   name      String
   role      String    @default("EMPLOYEE")
 
+  // 🌟 เพิ่มบรรทัดนี้เข้าไปครับ เพื่อให้ TypeScript และ Database รู้จัก avatarUrl
+  avatarUrl String?
+
   // 🌟 เพิ่มบรรทัดนี้เข้าไปครับ เพื่อให้มันชี้กลับไปหา Employee
   employee  Employee?
 }
