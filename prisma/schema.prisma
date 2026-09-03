@@ -28,15 +28,19 @@ model Employee {
   firstNameEn  String?        // ชื่อจริง (EN)
   lastNameEn   String?        // นามสกุล (EN)
   email        String         @unique
-  position     String         // ตำแหน่งงาน (เดี๋ยวไปบังคับด้วย Dropdown ที่หน้าเว็บ)
+  position     String         // ตำแหน่งงาน 
   salary       Float?
   phone        String?
   departmentId Int?
   
+  // 🌟 เพิ่ม 2 บรรทัดนี้ เพื่อผูกกับตาราง User
+  userId       Int?           @unique 
+  user         User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  // 🔗 Relations
+  // 🔗 Relations เดิมที่มีอยู่
   department   Department?    @relation(fields: [departmentId], references: [id], map: "employee_department_fk")
   attendances  Attendance[]
   leaves       LeaveRequest[]
@@ -49,13 +53,14 @@ model Employee {
 // ==========================================
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
   password  String
   name      String
-  role      Role     @default(EMPLOYEE)
-  avatarUrl String?
-  createdAt DateTime @default(now())
+  role      String    @default("EMPLOYEE")
+
+  // 🌟 เพิ่มบรรทัดนี้เข้าไปครับ เพื่อให้มันชี้กลับไปหา Employee
+  employee  Employee?
 }
 
 // ==========================================

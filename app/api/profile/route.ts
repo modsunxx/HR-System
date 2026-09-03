@@ -1,34 +1,73 @@
-import { NextResponse } from "next/server";
-import { prisma } from "../../../lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import NextAuth, { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
-// วางต่อท้ายฟังก์ชัน PUT เดิมในไฟล์ app/api/profile/route.ts
-export async function DELETE() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.name) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.username || !credentials?.password) {
+          return null;
+        }
 
-    // หา User จากชื่อที่ล็อกอิน
-    const user = await prisma.user.findFirst({
-      where: { name: session.user.name },
-    });
+        const user = await prisma.user.findUnique({
+          where: { username: credentials.username },
+        });
 
-    if (!user)
-      return NextResponse.json({ error: "ไม่พบผู้ใช้งาน" }, { status: 404 });
+        if (!user) {
+          return null;
+        }
 
-    // สั่งลบออกจาก Database
-    await prisma.user.delete({
-      where: { id: user.id },
-    });
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password,
+          user.password,
+        );
 
-    return NextResponse.json({ success: true, message: "ลบบัญชีสำเร็จ" });
-  } catch {
-    return NextResponse.json(
-      { error: "เกิดข้อผิดพลาดในการลบบัญชี" },
-      { status: 500 },
-    );
-  }
-}
+        if (!isPasswordValid) {
+          return null;
+        }
+
+        // 🌟 เปลี่ยนจากการยืมช่อง email มาเป็นการคืนค่า role ตรงๆ
+        return {
+          id: user.id.toString(),
+          name: user.name,
+          role: user.role,
+        };
+      },
+    }),
+  ],
+  // 🌟 เพิ่มบล็อก callbacks เพื่อให้ NextAuth จำ Role ได้
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        // 🌟 เติม unknown as คั่นกลาง
+        token.role = (user as unknown as { role: string }).role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        // 🌟 เติม unknown as คั่นกลางเหมือนกันครับ
+        (session.user as unknown as { role: string }).role =
+          token.role as string;
+      }
+      return session;
+    },
+  },
+  session: {
+    strategy: "jwt",
+  },
+  pages: {
+    signIn: "/login",
+  },
+};
+
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };

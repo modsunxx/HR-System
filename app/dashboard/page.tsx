@@ -1,47 +1,44 @@
 import Sidebar from "../../components/Sidebar";
 import Link from "next/link";
-import { prisma } from "../../lib/prisma"; // ดึงเครื่องมือ Prisma มาใช้
+import { prisma } from "../../lib/prisma";
 
 export default async function DashboardPage() {
-  // 1. ดึงข้อมูลพนักงานทั้งหมดจาก Database พร้อมชื่อแผนก
-  const dbEmployees = await prisma.employee.findMany({
-    include: {
-      department: true, // Join ตาราง Department มาด้วย
-    },
+  // 🌟 1. เปลี่ยนมาดึงข้อมูลจากตาราง User แทน
+  const dbUsers = await prisma.user.findMany({
     orderBy: {
-      id: "asc", // เรียงตาม ID
+      id: "asc",
     },
   });
 
-  // 2. นับจำนวนพนักงานทั้งหมดในระบบจริงๆ
-  const totalEmployeesCount = await prisma.employee.count();
+  // 🌟 2. เปลี่ยนมานับจำนวนจากตาราง User
+  const totalEmployeesCount = await prisma.user.count();
 
   const stats = [
     {
       id: 1,
       label: "Total Employees",
-      value: totalEmployeesCount.toString(), // อันนี้คือยอดจริงจาก Database
+      value: totalEmployeesCount.toString(),
       icon: "👥",
-      trend: "+0 this month", // ปรับให้ดูเนียนๆ ก่อน
+      trend: "+0 this month",
     },
     {
       id: 2,
       label: "On Leave Today",
-      value: "0", // แก้จาก 8 เป็น 0
+      value: "0",
       icon: "🏖️",
       trend: "Normal",
     },
     {
       id: 3,
       label: "Pending Onboarding",
-      value: "0", // แก้จาก 3 เป็น 0
+      value: "0",
       icon: "📝",
       trend: "Action required",
     },
     {
       id: 4,
       label: "Open Positions",
-      value: "0", // แก้จาก 5 เป็น 0
+      value: "0",
       icon: "💼",
       trend: "From ATS",
     },
@@ -55,16 +52,12 @@ export default async function DashboardPage() {
           "url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop')",
       }}
     >
-      {/* Background Overlay */}
       <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-md z-0"></div>
 
-      {/* เรียกใช้ Sidebar */}
       <Sidebar />
 
-      {/* Main Content Area */}
       <div className="relative z-10 flex-1 p-4 sm:p-8 flex flex-col items-center justify-start h-screen overflow-y-auto">
         <div className="w-full max-w-6xl mt-4 p-8 sm:p-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl text-white">
-          {/* Header Section */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-white/20 pb-6 gap-4">
             <div>
               <Link
@@ -85,7 +78,6 @@ export default async function DashboardPage() {
             </button>
           </div>
 
-          {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {stats.map((stat) => (
               <div
@@ -95,13 +87,7 @@ export default async function DashboardPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div className="text-3xl">{stat.icon}</div>
                   <span
-                    className={`text-xs font-medium px-2 py-1 rounded-md ${
-                      stat.trend.includes("+") || stat.trend === "Normal"
-                        ? "bg-green-500/20 text-green-300"
-                        : stat.trend.includes("Action")
-                          ? "bg-yellow-500/20 text-yellow-300"
-                          : "bg-slate-500/20 text-slate-300"
-                    }`}
+                    className={`text-xs font-medium px-2 py-1 rounded-md ${stat.trend.includes("+") || stat.trend === "Normal" ? "bg-green-500/20 text-green-300" : stat.trend.includes("Action") ? "bg-yellow-500/20 text-yellow-300" : "bg-slate-500/20 text-slate-300"}`}
                   >
                     {stat.trend}
                   </span>
@@ -114,7 +100,6 @@ export default async function DashboardPage() {
             ))}
           </div>
 
-          {/* Employee Directory Table */}
           <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden shadow-lg">
             <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
               <h2 className="text-xl font-semibold">Employee Directory</h2>
@@ -140,23 +125,25 @@ export default async function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="text-sm">
-                  {/* 4. นำข้อมูลจริงจาก DB มา Map ลงตาราง */}
-                  {dbEmployees.length > 0 ? (
-                    dbEmployees.map((emp) => (
+                  {/* 🌟 3. นำข้อมูลจากตาราง User มา Map ลงตารางแทน */}
+                  {dbUsers.length > 0 ? (
+                    dbUsers.map((user) => (
                       <tr
-                        key={emp.id}
+                        key={user.id}
                         className="border-b border-white/5 hover:bg-white/5 transition-colors"
                       >
                         <td className="p-4 font-mono text-slate-400">
-                          EMP-{emp.id.toString().padStart(3, "0")}
+                          EMP-{user.id.toString().padStart(3, "0")}
                         </td>
                         <td className="p-4 font-medium">
-                          {emp.firstName} {emp.lastName}
+                          {user.name} {/* ใช้คอลัมน์ name จากตาราง User */}
                         </td>
-                        <td className="p-4 text-slate-300">{emp.position}</td>
+                        <td className="p-4 text-slate-300">
+                          {user.role} {/* ใช้คอลัมน์ role จากตาราง User */}
+                        </td>
                         <td className="p-4">
                           <span className="bg-white/10 px-3 py-1 rounded-full text-xs">
-                            {emp.department?.name || "Unassigned"}
+                            Unassigned
                           </span>
                         </td>
                         <td className="p-4">

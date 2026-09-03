@@ -21,12 +21,23 @@ export async function POST(req: Request) {
     // 2. เข้ารหัสผ่าน
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. บันทึกลงฐานข้อมูล
+    // 🌟 3. บันทึกลงฐานข้อมูล (สร้าง User + Employee พร้อมกัน)
     await prisma.user.create({
       data: {
         username,
         password: hashedPassword,
         name: name || username,
+        role: "EMPLOYEE", // บังคับสิทธิ์เริ่มต้นให้เป็น EMPLOYEE
+
+        // ✨ สร้างโปรไฟล์ Employee ผูกกับ User อัตโนมัติ
+        employee: {
+          create: {
+            firstName: name || username, // ใช้ Display Name เป็นชื่อจริงชั่วคราว
+            lastName: "รอการอัปเดต", // นามสกุลชั่วคราว
+            email: `${username}@company.com`, // สร้างอีเมลดัมมี่เพื่อไม่ให้ติด Error (Unique)
+            position: "พนักงานใหม่", // ตำแหน่งเริ่มต้น
+          },
+        },
       },
     });
 

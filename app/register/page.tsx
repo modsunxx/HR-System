@@ -20,7 +20,6 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // ส่งข้อมูลไปบันทึกที่ API หลังบ้าน
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -28,14 +27,12 @@ export default function RegisterPage() {
       });
 
       if (res.ok) {
-        // ถ้าสมัครสำเร็จ ให้เด้งไปหน้า Login
         router.push("/login");
       } else {
         const data = await res.json();
         setError(data.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก");
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
+    } catch {
       setError("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้");
     } finally {
       setIsLoading(false);
@@ -57,7 +54,10 @@ export default function RegisterPage() {
         <h1 className="text-2xl font-semibold mb-2 tracking-wide">
           Create Account
         </h1>
-        <p className="text-sm text-zinc-400 mb-8">Register a new HR Admin</p>
+        {/* 🌟 แก้ไขคำโปรยให้ถูกต้อง */}
+        <p className="text-sm text-zinc-400 mb-8">
+          Register a new employee account
+        </p>
 
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 text-red-300 p-3 rounded-xl mb-6 text-sm text-center backdrop-blur-md">
@@ -66,36 +66,52 @@ export default function RegisterPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            required
-            placeholder="Display Name"
-            className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-black/40 transition-all placeholder:text-zinc-500"
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
-          <input
-            type="text"
-            required
-            placeholder="Username"
-            className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-black/40 transition-all placeholder:text-zinc-500"
-            onChange={(e) =>
-              setFormData({ ...formData, username: e.target.value })
-            }
-          />
-          <input
-            type="password"
-            required
-            placeholder="Password"
-            className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-black/40 transition-all placeholder:text-zinc-500"
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-          />
+          {/* 🌟 1. Username สำหรับ Login (เอาขึ้นก่อน) */}
+          <div>
+            <input
+              type="text"
+              required
+              placeholder="Username (สำหรับเข้าสู่ระบบ)"
+              className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-black/40 transition-all placeholder:text-zinc-500"
+              onChange={(e) =>
+                setFormData({ ...formData, username: e.target.value })
+              }
+            />
+          </div>
+
+          {/* 🌟 2. Password */}
+          <div>
+            <input
+              type="password"
+              required
+              placeholder="Password (รหัสผ่าน)"
+              className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-black/40 transition-all placeholder:text-zinc-500"
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+            />
+          </div>
+
+          {/* 🌟 3. Display Name เอาไว้ท้ายสุด พร้อมคำอธิบายเล็กๆ */}
+          <div>
+            <input
+              type="text"
+              required
+              placeholder="Display Name (ชื่อที่แสดงในระบบ)"
+              className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-black/40 transition-all placeholder:text-zinc-500"
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+            />
+            <p className="text-[11px] text-zinc-500 mt-1.5 ml-2">
+              * ชื่อนี้จะไปปรากฏบนหน้าโปรไฟล์และเมนูต่างๆ (แก้ไขได้ทีหลัง)
+            </p>
+          </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-xl transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 mt-4 cursor-pointer"
+            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-xl transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 mt-6 cursor-pointer"
           >
             {isLoading ? "Creating..." : "Register"}
           </button>

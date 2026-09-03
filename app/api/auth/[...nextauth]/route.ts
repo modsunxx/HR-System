@@ -1,6 +1,6 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "../../../../lib/prisma";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 // 🌟 แยกตัวแปร authOptions ออกมาและใส่ export เพื่อให้ไฟล์อื่นดึงไปใช้ได้
@@ -34,14 +34,31 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // 🌟 จุดที่ 1: คืนค่า role ตรงๆ (เลิกยืมช่อง email)
         return {
           id: user.id.toString(),
           name: user.name,
-          email: user.role, // ยืมช่อง email เก็บ Role เหมือนเดิมเป๊ะครับ
+          role: user.role,
         };
       },
     }),
   ],
+  // 🌟 จุดที่ 2: บล็อก callbacks สำหรับยัด role ใส่ Token และส่งให้หน้าเว็บ
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = (user as unknown as { role: string }).role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        (session.user as unknown as { role: string }).role =
+          token.role as string;
+      }
+      return session;
+    },
+  },
   session: {
     strategy: "jwt",
   },
