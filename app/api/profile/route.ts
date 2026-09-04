@@ -2,11 +2,18 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache"; // 🌟 นำเข้า revalidatePath
+import { revalidatePath } from "next/cache";
+
+// 🌟 1. สร้าง Type บอกโครงสร้างข้อมูลให้ TypeScript รู้จัก
+interface ProfileUpdateData {
+  displayName: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+}
 
 export async function PUT(req: Request) {
   try {
-    // 1. ตรวจสอบว่า User ล็อกอินอยู่หรือไม่
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user || !(session.user as { id: string }).id) {
@@ -16,11 +23,10 @@ export async function PUT(req: Request) {
       );
     }
 
-    // 2. ดึงข้อมูลที่ส่งมาจากหน้าต่าง Edit Profile
-    const body = await req.json();
+    // 🌟 2. ระบุ Type (as ProfileUpdateData) ให้กับตัวแปร body
+    const body = (await req.json()) as ProfileUpdateData;
     const userId = parseInt((session.user as { id: string }).id);
 
-    // 3. ใช้ Prisma อัปเดตข้อมูลแบบ Nested (ทะลุไปตาราง Employee)
     const updatedUser = await prisma.user.update({
       where: {
         id: userId,
@@ -28,16 +34,27 @@ export async function PUT(req: Request) {
       data: {
         name: body.displayName,
         employee: {
-          update: {
-            firstName: body.firstName,
-            lastName: body.lastName,
-            phone: body.phone,
+          upsert: {
+            // 🟢 กรณีสร้างใหม่ (Insert) ต้องใส่ฟิลด์ที่บังคับ (Required) ให้ครบ
+            create: {
+              firstName: body.firstName || "",
+              lastName: body.lastName || "",
+              phone: body.phone || "",
+              // 🌟 เพิ่ม 2 บรรทัดนี้เข้าไปครับ (เพื่อให้ตรงกับ Schema ที่บังคับ)
+              email: `user${userId}@hr-system.local`, // ใส่เมลดัมมี่ไปก่อน ป้องกันการซ้ำ (@unique)
+              position: "ยังไม่ระบุตำแหน่ง", // ใส่ค่าเริ่มต้น
+            },
+            // 🔵 กรณีอัปเดต (Update) ไม่จำเป็นต้องส่งครบ ส่งแค่ตัวที่อยากเปลี่ยนก็พอ
+            update: {
+              firstName: body.firstName,
+              lastName: body.lastName,
+              phone: body.phone,
+            },
           },
         },
       },
     });
 
-    // 🌟 4. สั่งล้างความจำหน้า profile เพื่อให้ดึงข้อมูลใหม่ทันที
     revalidatePath("/profile");
 
     return NextResponse.json(
