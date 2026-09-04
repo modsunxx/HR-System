@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache"; // 🌟 นำเข้า revalidatePath
 
 export async function PUT(req: Request) {
   try {
@@ -25,10 +26,7 @@ export async function PUT(req: Request) {
         id: userId,
       },
       data: {
-        // อัปเดตตาราง User (ใช้สำหรับการล็อกอินและโชว์ชื่อมุมขวาบน)
         name: body.displayName,
-
-        // อัปเดตตาราง Employee ที่ผูกอยู่กับ User นี้
         employee: {
           update: {
             firstName: body.firstName,
@@ -38,6 +36,9 @@ export async function PUT(req: Request) {
         },
       },
     });
+
+    // 🌟 4. สั่งล้างความจำหน้า profile เพื่อให้ดึงข้อมูลใหม่ทันที
+    revalidatePath("/profile");
 
     return NextResponse.json(
       { message: "อัปเดตโปรไฟล์สำเร็จ", user: updatedUser },

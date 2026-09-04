@@ -1,8 +1,18 @@
 "use client";
 
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../components/Sidebar"; // 🌟 ระวังเรื่อง Path ของ Sidebar ด้วยนะครับ ถ้า error ให้ปรับตามโฟลเดอร์จริง
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+// 🌟 Import Icons จาก lucide-react ทั้งหมดที่ต้องใช้
+import {
+  LayoutDashboard,
+  Users,
+  Briefcase,
+  UserPlus,
+  Umbrella,
+  Clock,
+  UserCircle,
+} from "lucide-react";
 
 export default function Home() {
   // 1. ดึงข้อมูล session และสิทธิ์ของผู้ใช้งาน
@@ -52,9 +62,10 @@ export default function Home() {
                   href="/dashboard"
                   className="block p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-xl"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
-                    📊
-                  </div>
+                  <LayoutDashboard
+                    className="w-10 h-10 mb-4 text-emerald-400 group-hover:scale-110 transition-transform"
+                    strokeWidth={1.5}
+                  />
                   <h2 className="text-xl font-semibold mb-2">
                     Company Dashboard
                   </h2>
@@ -67,9 +78,10 @@ export default function Home() {
                   href="/employees"
                   className="block p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-xl"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
-                    📇
-                  </div>
+                  <Users
+                    className="w-10 h-10 mb-4 text-blue-400 group-hover:scale-110 transition-transform"
+                    strokeWidth={1.5}
+                  />
                   <h2 className="text-xl font-semibold mb-2">
                     Employee Directory
                   </h2>
@@ -83,9 +95,10 @@ export default function Home() {
                   href="/ats"
                   className="block p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-xl"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
-                    📄
-                  </div>
+                  <Briefcase
+                    className="w-10 h-10 mb-4 text-purple-400 group-hover:scale-110 transition-transform"
+                    strokeWidth={1.5}
+                  />
                   <h2 className="text-xl font-semibold mb-2">
                     Applicant Tracking
                   </h2>
@@ -98,9 +111,10 @@ export default function Home() {
                   href="/onboarding"
                   className="block p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-xl"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
-                    📝
-                  </div>
+                  <UserPlus
+                    className="w-10 h-10 mb-4 text-orange-400 group-hover:scale-110 transition-transform"
+                    strokeWidth={1.5}
+                  />
                   <h2 className="text-xl font-semibold mb-2">
                     Onboarding Form
                   </h2>
@@ -113,9 +127,10 @@ export default function Home() {
                   href="/leave"
                   className="block p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-xl"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
-                    🏖️
-                  </div>
+                  <Umbrella
+                    className="w-10 h-10 mb-4 text-sky-400 group-hover:scale-110 transition-transform"
+                    strokeWidth={1.5}
+                  />
                   <h2 className="text-xl font-semibold mb-2">
                     Leave Management
                   </h2>
@@ -128,9 +143,10 @@ export default function Home() {
                   href="/attendance"
                   className="block p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-xl"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
-                    ⏰
-                  </div>
+                  <Clock
+                    className="w-10 h-10 mb-4 text-rose-400 group-hover:scale-110 transition-transform"
+                    strokeWidth={1.5}
+                  />
                   <h2 className="text-xl font-semibold mb-2">
                     Time & Attendance
                   </h2>
@@ -158,15 +174,15 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* พนักงานใช้ Grid แค่ 2 คอลัมน์ก็พอ เพื่อความสวยงามไม่โล่งเกินไป */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Link
                   href="/attendance"
                   className="block p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-blue-500/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-xl"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
-                    ⏰
-                  </div>
+                  <Clock
+                    className="w-10 h-10 mb-4 text-blue-400 group-hover:scale-110 transition-transform"
+                    strokeWidth={1.5}
+                  />
                   <h2 className="text-xl font-semibold mb-2 text-blue-300">
                     ลงเวลาเข้า-ออกงาน
                   </h2>
@@ -176,12 +192,13 @@ export default function Home() {
                 </Link>
 
                 <Link
-                  href="/leave-request"
+                  href="/leave"
                   className="block p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-sky-500/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-xl"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
-                    🏖️
-                  </div>
+                  <Umbrella
+                    className="w-10 h-10 mb-4 text-sky-400 group-hover:scale-110 transition-transform"
+                    strokeWidth={1.5}
+                  />
                   <h2 className="text-xl font-semibold mb-2 text-sky-300">
                     ยื่นขอลางาน
                   </h2>
@@ -194,9 +211,10 @@ export default function Home() {
                   href="/profile"
                   className="block p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-purple-500/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-xl"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
-                    👤
-                  </div>
+                  <UserCircle
+                    className="w-10 h-10 mb-4 text-purple-400 group-hover:scale-110 transition-transform"
+                    strokeWidth={1.5}
+                  />
                   <h2 className="text-xl font-semibold mb-2 text-purple-300">
                     โปรไฟล์ส่วนตัว
                   </h2>

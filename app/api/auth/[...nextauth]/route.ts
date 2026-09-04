@@ -34,7 +34,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // 🌟 จุดที่ 1: คืนค่า role ตรงๆ (เลิกยืมช่อง email)
+        // 🌟 จุดที่ 1: คืนค่า role และ id
         return {
           id: user.id.toString(),
           name: user.name,
@@ -43,18 +43,23 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  // 🌟 จุดที่ 2: บล็อก callbacks สำหรับยัด role ใส่ Token และส่งให้หน้าเว็บ
+  // 🌟 จุดที่ 2: บล็อก callbacks สำหรับยัด role และ id ใส่ Token และส่งให้หน้าเว็บ
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as unknown as { role: string }).role;
+        // เพิ่ม Type ให้รู้จักทั้ง role และ id
+        const u = user as unknown as { role: string; id: string };
+        token.role = u.role;
+        token.id = u.id; // 🌟 ยัด ID ใส่ Token
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as unknown as { role: string }).role =
-          token.role as string;
+        // เพิ่ม Type ให้รู้จักทั้ง role และ id
+        const u = session.user as unknown as { role: string; id: string };
+        u.role = token.role as string;
+        u.id = token.id as string; // 🌟 ส่ง ID จาก Token เข้า Session ให้หน้าเว็บใช้งาน
       }
       return session;
     },
