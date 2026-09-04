@@ -5,34 +5,39 @@ import { useRouter } from "next/navigation";
 
 export default function EditProfileModal({
   currentName,
-  currentFirstName = "", // 🌟 รับค่า Prop เพิ่ม (ใส่ default เป็นค่าว่างเผื่อไว้)
+  currentFirstName = "",
   currentLastName = "",
+  currentFirstNameEn = "",
+  currentLastNameEn = "",
   currentPhone = "",
+  currentEmail = "", // 🌟 1. รับค่า Email เดิม
 }: {
   currentName: string;
   currentFirstName?: string;
   currentLastName?: string;
+  currentFirstNameEn?: string;
+  currentLastNameEn?: string;
   currentPhone?: string;
+  currentEmail?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
 
-  // 🌟 รวม State ไว้ใน Object เดียวเพื่อให้จัดการง่ายขึ้น
   const [formData, setFormData] = useState({
     displayName: currentName,
     firstName: currentFirstName,
     lastName: currentLastName,
+    firstNameEn: currentFirstNameEn,
+    lastNameEn: currentLastNameEn,
     phone: currentPhone,
+    email: currentEmail, // 🌟 2. เพิ่ม Email ลงใน State
   });
 
   const handleSave = async () => {
-    // เช็คว่า Display Name ห้ามว่าง
     if (!formData.displayName.trim()) return;
-
     setIsSaving(true);
 
-    // 🌟 ส่งข้อมูลทั้งหมดใน formData ไปที่ API
     const res = await fetch("/api/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -41,14 +46,13 @@ export default function EditProfileModal({
 
     if (res.ok) {
       setIsOpen(false);
-      router.refresh(); // รีเฟรชหน้าเว็บให้ข้อมูลอัปเดต
+      router.refresh();
     }
     setIsSaving(false);
   };
 
   return (
     <>
-      {/* ปุ่มกด Edit Profile */}
       <button
         onClick={() => setIsOpen(true)}
         className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-medium transition-colors shadow-lg"
@@ -56,7 +60,6 @@ export default function EditProfileModal({
         <span>✏️</span> Edit Profile
       </button>
 
-      {/* หน้าต่าง Popup (Modal) กระจกฝ้า */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-slate-900/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/20 w-full max-w-md shadow-2xl text-white transform transition-all">
@@ -66,7 +69,6 @@ export default function EditProfileModal({
             </p>
 
             <div className="space-y-4 mb-8">
-              {/* 🌟 โซนบัญชีผู้ใช้ */}
               <div>
                 <label className="block text-sm text-slate-300 mb-2">
                   Display Name (ชื่อบัญชีผู้ใช้)
@@ -77,12 +79,11 @@ export default function EditProfileModal({
                   onChange={(e) =>
                     setFormData({ ...formData, displayName: e.target.value })
                   }
-                  className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                  placeholder="กรอกชื่อที่ใช้แสดงผล..."
+                  className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
-              {/* 🌟 โซนข้อมูลพนักงานแบบ Grid 2 คอลัมน์ */}
+              {/* โซนชื่อไทย */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-slate-300 mb-2">
@@ -94,8 +95,7 @@ export default function EditProfileModal({
                     onChange={(e) =>
                       setFormData({ ...formData, firstName: e.target.value })
                     }
-                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                    placeholder="ชื่อจริง..."
+                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
@@ -108,26 +108,69 @@ export default function EditProfileModal({
                     onChange={(e) =>
                       setFormData({ ...formData, lastName: e.target.value })
                     }
-                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                    placeholder="นามสกุล..."
+                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
-              {/* 🌟 โซนเบอร์ติดต่อ */}
-              <div>
-                <label className="block text-sm text-slate-300 mb-2">
-                  Phone Number (เบอร์ติดต่อ)
-                </label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                  placeholder="08X-XXX-XXXX"
-                />
+              {/* โซนชื่ออังกฤษ */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">
+                    First Name (EN)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.firstNameEn}
+                    onChange={(e) =>
+                      setFormData({ ...formData, firstNameEn: e.target.value })
+                    }
+                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">
+                    Last Name (EN)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.lastNameEn}
+                    onChange={(e) =>
+                      setFormData({ ...formData, lastNameEn: e.target.value })
+                    }
+                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* 🌟 3. โซนอีเมลและเบอร์โทร */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">
+                    Email (อีเมลติดต่อ)
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
               </div>
             </div>
 
@@ -141,7 +184,7 @@ export default function EditProfileModal({
               </button>
               <button
                 onClick={handleSave}
-                className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+                className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-sm font-medium transition-colors"
                 disabled={isSaving}
               >
                 {isSaving ? "Saving..." : "Save Changes"}

@@ -4,12 +4,15 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-// 🌟 1. สร้าง Type บอกโครงสร้างข้อมูลให้ TypeScript รู้จัก
+// 🌟 1. เพิ่ม email ใน Type
 interface ProfileUpdateData {
   displayName: string;
   firstName: string;
   lastName: string;
+  firstNameEn: string;
+  lastNameEn: string;
   phone: string;
+  email: string;
 }
 
 export async function PUT(req: Request) {
@@ -23,7 +26,6 @@ export async function PUT(req: Request) {
       );
     }
 
-    // 🌟 2. ระบุ Type (as ProfileUpdateData) ให้กับตัวแปร body
     const body = (await req.json()) as ProfileUpdateData;
     const userId = parseInt((session.user as { id: string }).id);
 
@@ -35,20 +37,24 @@ export async function PUT(req: Request) {
         name: body.displayName,
         employee: {
           upsert: {
-            // 🟢 กรณีสร้างใหม่ (Insert) ต้องใส่ฟิลด์ที่บังคับ (Required) ให้ครบ
             create: {
               firstName: body.firstName || "",
               lastName: body.lastName || "",
+              firstNameEn: body.firstNameEn || null,
+              lastNameEn: body.lastNameEn || null,
               phone: body.phone || "",
-              // 🌟 เพิ่ม 2 บรรทัดนี้เข้าไปครับ (เพื่อให้ตรงกับ Schema ที่บังคับ)
-              email: `user${userId}@hr-system.local`, // ใส่เมลดัมมี่ไปก่อน ป้องกันการซ้ำ (@unique)
-              position: "ยังไม่ระบุตำแหน่ง", // ใส่ค่าเริ่มต้น
+              // 🌟 2. ถ้าไม่ได้กรอกมา ให้สร้างเมลชั่วคราวกัน error
+              email: body.email || `user${userId}@hr-system.local`,
+              position: "ยังไม่ระบุตำแหน่ง",
             },
-            // 🔵 กรณีอัปเดต (Update) ไม่จำเป็นต้องส่งครบ ส่งแค่ตัวที่อยากเปลี่ยนก็พอ
             update: {
               firstName: body.firstName,
               lastName: body.lastName,
+              firstNameEn: body.firstNameEn || null,
+              lastNameEn: body.lastNameEn || null,
               phone: body.phone,
+              // 🌟 3. อัปเดตอีเมล (เฉพาะถ้ากรอกมา)
+              ...(body.email ? { email: body.email } : {}),
             },
           },
         },
