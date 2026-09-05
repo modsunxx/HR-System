@@ -23,12 +23,14 @@ export default function EmployeeFilterBar({
   const [dept, setDept] = useState(searchParams.get("dept") || "");
 
   const handleFilter = () => {
-    // เอาค่าที่พิมพ์ไปต่อท้าย URL (เช่น /employees?q=สมชาย&dept=1)
     const params = new URLSearchParams();
     if (search.trim()) params.set("q", search.trim());
     if (dept) params.set("dept", dept);
 
     router.push(`/employees?${params.toString()}`);
+
+    // 🌟 เพิ่มบรรทัดนี้! เพื่อสะกิดบังคับให้ Next.js รีเฟรชตารางดึงข้อมูลใหม่
+    router.refresh();
   };
 
   return (

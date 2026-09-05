@@ -5,14 +5,12 @@ import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { prisma } from "../../lib/prisma";
 import AdminEditEmployeeModal from "../../components/AdminEditEmployeeModal";
-import EmployeeFilterBar from "../../components/EmployeeFilterBar"; // 🌟 Import แถบค้นหา
+import EmployeeFilterBar from "../../components/EmployeeFilterBar";
 
-export default async function EmployeesDirectoryPage({
-  searchParams,
-}: {
-  searchParams: { q?: string; dept?: string };
+export default async function EmployeesDirectoryPage(props: {
+  searchParams: Promise<{ q?: string; dept?: string }>; // 🌟 1. กำหนดเป็น Promise
 }) {
-  // 🌟 1. เช็คสิทธิ์ความปลอดภัย: ถ้าไม่ใช่ HR_ADMIN ให้เด้งกลับหน้าแรก
+  // เช็คสิทธิ์ความปลอดภัย
   const session = await getServerSession(authOptions);
   const userRole = (session?.user as { role?: string })?.role;
 
@@ -20,23 +18,25 @@ export default async function EmployeesDirectoryPage({
     redirect("/");
   }
 
-  // 🌟 เตรียมเงื่อนไขการกรองข้อมูล (Filter)
+  // 🌟 2. แกะกล่อง Promise ก่อนใช้งาน (กฎใหม่ Next.js 15)
+  const searchParams = await props.searchParams;
   const q = searchParams.q || "";
   const deptFilter = searchParams.dept || "";
 
+  // เตรียมเงื่อนไขการกรองข้อมูล
   const whereClause: {
     name?: { contains: string; mode: "insensitive" };
     employee?: { departmentId: number };
   } = {};
 
   if (q) {
-    whereClause.name = { contains: q, mode: "insensitive" }; // ค้นหาชื่อ
+    whereClause.name = { contains: q, mode: "insensitive" };
   }
   if (deptFilter) {
-    whereClause.employee = { departmentId: parseInt(deptFilter) }; // กรองแผนก
+    whereClause.employee = { departmentId: parseInt(deptFilter) };
   }
 
-  // 🌟 2. ดึงข้อมูลจากฐาน User พร้อมใส่เงื่อนไขค้นหา
+  // ดึงข้อมูล User
   const dbUsers = await prisma.user.findMany({
     where: whereClause,
     include: {
@@ -46,12 +46,10 @@ export default async function EmployeesDirectoryPage({
         },
       },
     },
-    orderBy: {
-      id: "asc",
-    },
+    orderBy: { id: "asc" },
   });
 
-  // 🌟 3. ดึงข้อมูลแผนกทั้งหมดมาเตรียมไว้ให้ EmployeeFilterBar และ Modal
+  // ดึงข้อมูลแผนก
   const departments = await prisma.department.findMany({
     orderBy: { name: "asc" },
   });
@@ -64,16 +62,11 @@ export default async function EmployeesDirectoryPage({
           "url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop')",
       }}
     >
-      {/* Background Overlay */}
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md z-0"></div>
-
-      {/* เรียกใช้ Sidebar */}
       <Sidebar />
 
-      {/* Main Content Area */}
       <div className="relative z-10 flex-1 p-4 sm:p-8 flex flex-col items-center justify-start h-screen overflow-y-auto">
         <div className="w-full max-w-7xl mt-4 p-8 sm:p-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl text-white">
-          {/* Header Section */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-white/20 pb-6 gap-4">
             <div>
               <Link
@@ -90,20 +83,16 @@ export default async function EmployeesDirectoryPage({
                 {dbUsers.length} คน)
               </p>
             </div>
-
             <Link
-              href="/employee/new"
+              href="/employees/new"
               className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/30 text-white rounded-xl font-medium transition-all shadow-lg flex items-center gap-2"
             >
               <span>➕</span> Add New Employee
             </Link>
           </div>
 
-          {/* Employee Directory Table */}
           <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden shadow-lg">
-            {/* 🌟 เรียกใช้แถบค้นหาที่เพิ่งสร้างตรงนี้ */}
             <EmployeeFilterBar departments={departments} />
-
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -123,7 +112,6 @@ export default async function EmployeesDirectoryPage({
                       const avatar =
                         user.avatarUrl ||
                         `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}&backgroundColor=transparent`;
-
                       return (
                         <tr
                           key={user.id}
@@ -151,11 +139,7 @@ export default async function EmployeesDirectoryPage({
                           </td>
                           <td className="p-4">
                             <span
-                              className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                                user.role === "HR_ADMIN"
-                                  ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
-                                  : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                              }`}
+                              className={`px-3 py-1 rounded-full text-xs font-medium border ${user.role === "HR_ADMIN" ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"}`}
                             >
                               {user.role}
                             </span>

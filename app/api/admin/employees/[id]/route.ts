@@ -6,10 +6,10 @@ import { revalidatePath } from "next/cache";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } },
+  // 🌟 1. กำหนดให้ params เป็น Promise (ตามกฎ Next.js 15)
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
-    // 1. เช็คความปลอดภัย ต้องเป็น HR_ADMIN เท่านั้นถึงจะแก้ไขได้
     const session = await getServerSession(authOptions);
     const userRole = (session?.user as { role?: string })?.role;
 
@@ -17,26 +17,27 @@ export async function PUT(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = parseInt(params.id);
+    // 🌟 2. จุดสำคัญที่สุด! ต้องใส่ await หน้า context.params เพื่อแกะกล่องเอา ID ออกมา
+    const resolvedParams = await context.params;
+    const userId = parseInt(resolvedParams.id, 10);
+
     const body = await req.json();
     const { role, position, salary, departmentId } = body;
 
-    // 2. อัปเดตข้อมูลลง Database (อัปเดต Role ที่ User และ อัปเดตที่เหลือลง Employee)
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id: userId }, // 🌟 ตอนนี้ userId จะเป็นตัวเลข (เช่น 3) เรียบร้อยแล้ว
       data: {
-        role: role, // อัปเดตสิทธิ์
+        role: role,
         employee: {
           upsert: {
             create: {
               position: position || null,
               salary: salary ? Number(salary) : null,
               departmentId: departmentId ? Number(departmentId) : null,
-              // 🌟 เติมข้อมูลที่ Database บังคับว่าห้ามว่าง ลงไปให้ครบ
               firstName: "Unknown",
               lastName: "User",
               phone: "-",
-              email: `user${userId}@hr-system.local`, // 👈 ขาดตัวนี้ไปครับ!
+              email: `user${userId}@hr-system.local`, // 🌟 ตรงนี้จะไม่เป็น NaN แล้ว
             },
             update: {
               position: position || null,
@@ -48,7 +49,7 @@ export async function PUT(
       },
     });
 
-    // 3. สั่งให้ Next.js รีเฟรชข้อมูลหน้า /employees ใหม่
+    // 🌟 3. สั่งรีเฟรชหน้าเว็บเพื่อให้ตารางอัปเดตข้อมูลใหม่
     revalidatePath("/employees");
 
     return NextResponse.json(

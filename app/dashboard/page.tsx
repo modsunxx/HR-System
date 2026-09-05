@@ -3,16 +3,25 @@ import Link from "next/link";
 import { prisma } from "../../lib/prisma";
 
 export default async function DashboardPage() {
-  // 🌟 1. เปลี่ยนมาดึงข้อมูลจากตาราง User แทน
+  // 🌟 1. ดึงข้อมูลตาราง User พร้อมเชื่อม (Join) ข้อมูล Employee และ Department
   const dbUsers = await prisma.user.findMany({
+    include: {
+      employee: {
+        include: {
+          department: true,
+        },
+      },
+    },
     orderBy: {
       id: "asc",
     },
   });
 
-  // 🌟 2. เปลี่ยนมานับจำนวนจากตาราง User
+  // นับจำนวนจากตาราง User จริงๆ
   const totalEmployeesCount = await prisma.user.count();
 
+  // (ส่วนของการลางานและตำแหน่งว่าง ตอนนี้ตั้งไว้เป็น 0 ก่อน
+  // จนกว่าเราจะทำระบบลางาน (Leave) และรับสมัครงาน (ATS) เพิ่มเติมครับ)
   const stats = [
     {
       id: 1,
@@ -124,47 +133,77 @@ export default async function DashboardPage() {
                     <th className="p-4 font-medium text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="text-sm">
-                  {/* 🌟 3. นำข้อมูลจากตาราง User มา Map ลงตารางแทน */}
+                <tbody className="text-sm divide-y divide-white/5">
                   {dbUsers.length > 0 ? (
-                    dbUsers.map((user) => (
-                      <tr
-                        key={user.id}
-                        className="border-b border-white/5 hover:bg-white/5 transition-colors"
-                      >
-                        <td className="p-4 font-mono text-slate-400">
-                          EMP-{user.id.toString().padStart(3, "0")}
-                        </td>
-                        <td className="p-4 font-medium">
-                          {user.name} {/* ใช้คอลัมน์ name จากตาราง User */}
-                        </td>
-                        <td className="p-4 text-slate-300">
-                          {user.role} {/* ใช้คอลัมน์ role จากตาราง User */}
-                        </td>
-                        <td className="p-4">
-                          <span className="bg-white/10 px-3 py-1 rounded-full text-xs">
-                            Unassigned
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className="px-3 py-1 rounded-full text-xs font-medium border bg-green-500/20 text-green-300 border-green-500/30">
-                            Active
-                          </span>
-                        </td>
-                        <td className="p-4 text-center">
-                          <button className="text-blue-400 hover:text-blue-300 font-medium text-sm transition-colors">
-                            Manage
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    dbUsers.map((user) => {
+                      const emp = user.employee;
+                      // 🌟 ดึงรูป Avatar เหมือนในหน้า Directory
+                      const avatar =
+                        user.avatarUrl ||
+                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}&backgroundColor=transparent`;
+
+                      return (
+                        <tr
+                          key={user.id}
+                          className="hover:bg-white/5 transition-colors"
+                        >
+                          <td className="p-4 font-mono text-slate-400">
+                            EMP-
+                            {(emp?.id || user.id).toString().padStart(3, "0")}
+                          </td>
+                          <td className="p-4 font-medium flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 shrink-0 border border-white/20">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={avatar}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            {user.name}
+                          </td>
+                          <td className="p-4">
+                            {/* 🌟 แสดงสี Role ให้แยกกันชัดเจนแบบหน้า Directory */}
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                                user.role === "HR_ADMIN"
+                                  ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                                  : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                              }`}
+                            >
+                              {user.role}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            {/* 🌟 ดึงชื่อแผนกจริงๆ มาแสดงแทน Unassigned */}
+                            <span className="bg-white/10 px-3 py-1 rounded-full text-xs text-slate-300 border border-white/10">
+                              {emp?.department?.name || "Unassigned"}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <span className="px-3 py-1 rounded-full text-xs font-medium border bg-green-500/20 text-green-300 border-green-500/30">
+                              Active
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            {/* 🌟 เปลี่ยนเป็นปุ่ม Link ไปหน้า /employees เพื่อให้ไปจัดการข้อมูลได้จริง */}
+                            <Link
+                              href="/employees"
+                              className="px-4 py-1.5 bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 rounded-lg font-medium text-sm transition-colors border border-blue-500/30"
+                            >
+                              Manage
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
                       <td
                         colSpan={6}
                         className="p-8 text-center text-slate-400"
                       >
-                        ยังไม่มีข้อมูลพนักงานในระบบ (คลิกปุ่มเพิ่มพนักงานเลย!)
+                        ยังไม่มีข้อมูลพนักงานในระบบ
                       </td>
                     </tr>
                   )}
